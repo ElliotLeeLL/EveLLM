@@ -1,2 +1,2 @@
 # EveLLM
-A fine-tuned large language model
+Eve is a fine-tuned large language model🥳
