@@ -1,9 +1,9 @@
 import tiktoken
 import torch
 from configuration import config
-from model import AdamLLMModel
+from model import EveLLMModel
 from utils.model_utils import calc_loss_batch, evaluate_model, generate_and_print_sample, generate_and_print_top_k
-from dataset.adam_dataset import create_dataloader
+from dataset.eve_dataset import create_dataloader
 
 def train_model_simple(
         model,
@@ -84,7 +84,7 @@ val_loader = create_dataloader(
 
 torch.manual_seed(43)
 tokenizer = tiktoken.get_encoding("gpt2")
-model = AdamLLMModel(config)
+model = EveLLMModel(config)
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 model.to(device)
 optimizer = torch.optim.AdamW(

@@ -4,7 +4,7 @@ from attention.transformer_block import TransformerBlock
 from layers.layer_norm import LayerNorm
 
 
-class AdamLLMModel(nn.Module):
+class EveLLMModel(nn.Module):
     def __init__(self, config):
         super().__init__()
         self.token_embedding = nn.Embedding(config["vocab_size"], config["emb_dim"])
