@@ -159,10 +159,10 @@ def assign(left, right):
 
 def load_weights_into_evellm_gpt(model, params):
     model.position_embedding.weight = assign(
-        model.position_embedding, params['wpe']
+        model.position_embedding.weight, params['wpe']
     )
-    model.position_embedding.weight = assign(
-        model.position_embedding, params['wpe']
+    model.token_embedding.weight = assign(
+        model.token_embedding.weight, params['wte']
     )
 
     for b in range(len(params["blocks"])):
@@ -170,72 +170,72 @@ def load_weights_into_evellm_gpt(model, params):
         q_w, k_w, v_w = np.split(
             (params["blocks"][b]["attn"]["c_attn"])["w"], 3, axis=-1
         )
-        model.trf_blocks[b].att.W_query.wight = assign(
-            model.trf_blocks[b].att.W_query.weight, q_w.T
+        model.transformer_blocks[b].attention_layer.W_query.wight = assign(
+            model.transformer_blocks[b].attention_layer.W_query.weight, q_w.T
         )
-        model.trf_blocks[b].att.W_key.weight = assign(
-            model.trf_blocks[b].att.W_key.weight, k_w.T
+        model.transformer_blocks[b].attention_layer.W_key.weight = assign(
+            model.transformer_blocks[b].attention_layer.W_key.weight, k_w.T
         )
-        model.trf_blocks[b].att.W_value.weight = assign(
-            model.trf_blocks[b].att.W_value.weight, v_w.T
+        model.transformer_blocks[b].attention_layer.W_value.weight = assign(
+            model.transformer_blocks[b].attention_layer.W_value.weight, v_w.T
         )
 
         # Assign biases for attention layers
         q_b, k_b, v_b = np.split(
             (params["blocks"][b]["attn"]["c_attn"])["b"], 3, axis=-1
         )
-        model.trf_blocks[b].att.W_query.bias = assign(
-            model.trf_blocks[b].att.W_query.bias, q_b
+        model.transformer_blocks[b].attention_layer.W_query.bias = assign(
+            model.transformer_blocks[b].attention_layer.W_query.bias, q_b
         )
-        model.trf_blocks[b].att.W_key.bias = assign(
-            model.trf_blocks[b].att.W_key.bias, k_b
+        model.transformer_blocks[b].attention_layer.W_key.bias = assign(
+            model.transformer_blocks[b].attention_layer.W_key.bias, k_b
         )
-        model.trf_blocks[b].att.W_value.bias = assign(
-            model.trf_blocks[b].att.W_value.bias, v_b
+        model.transformer_blocks[b].attention_layer.W_value.bias = assign(
+            model.transformer_blocks[b].attention_layer.W_value.bias, v_b
         )
 
         # Assign weights and bias for output layers
-        model.trf_blocks[b].att.out_proj.weight = assign(
-            model.trf_blocks[b].att.out_proj.weight,
+        model.transformer_blocks[b].attention_layer.output.weight = assign(
+            model.transformer_blocks[b].attention_layer.output.weight,
             params["blocks"][b]["attn"]["c_proj"]["w"].T
         )
-        model.trf_blocks[b].att.out_proj.bias = assign(
-            model.trf_blocks[b].att.out_proj.bias,
+        model.transformer_blocks[b].attention_layer.output.bias = assign(
+            model.transformer_blocks[b].attention_layer.output.bias,
             params["blocks"][b]["attn"]["c_proj"]["b"]
         )
 
         # Assign weights and bias for mlp layers
-        model.trf_blocks[b].ff.layers[0].weight = assign(
-            model.trf_blocks[b].ff.layers[0].weight,
+        model.transformer_blocks[b].ff.layers[0].weight = assign(
+            model.transformer_blocks[b].ff.layers[0].weight,
             params["blocks"][b]["mlp"]["c_fc"]["w"].T
         )
-        model.trf_blocks[b].ff.layers[0].bias = assign(
-            model.trf_blocks[b].ff.layers[0].bias,
+        model.transformer_blocks[b].ff.layers[0].bias = assign(
+            model.transformer_blocks[b].ff.layers[0].bias,
             params["blocks"][b]["mlp"]["c_fc"]["b"]
         )
-        model.trf_blocks[b].ff.layers[2].weight = assign(
-            model.trf_blocks[b].ff.layers[2].weight,
+        model.transformer_blocks[b].ff.layers[2].weight = assign(
+            model.transformer_blocks[b].ff.layers[2].weight,
             params["blocks"][b]["mlp"]["c_proj"]["w"].T
         )
-        model.trf_blocks[b].ff.layers[2].bias = assign(
-            model.trf_blocks[b].ff.layers[2].bias,
+        model.transformer_blocks[b].ff.layers[2].bias = assign(
+            model.transformer_blocks[b].ff.layers[2].bias,
             params["blocks"][b]["mlp"]["c_proj"]["b"]
         )
 
-        model.trf_block[b].norm1.scale = assign(
-            model.trf_block[b].norm1.scale,
+        model.transformer_blocks[b].norm1.scale = assign(
+            model.transformer_blocks[b].norm1.scale,
             params["blocks"][b]["ln_1"]["g"]
         )
-        model.trf_block[b].norm1.shift = assign(
-            model.trf_block[b].norm1.shift,
+        model.transformer_blocks[b].norm1.shift = assign(
+            model.transformer_blocks[b].norm1.shift,
             params["blocks"][b]["ln_1"]["b"]
         )
-        model.trf_block[b].norm2.scale = assign(
-            model.trf_block[b].norm2.scale,
+        model.transformer_blocks[b].norm2.scale = assign(
+            model.transformer_blocks[b].norm2.scale,
             params["blocks"][b]["ln_2"]["g"]
         )
-        model.trf_block[b].norm2.shift = assign(
-            model.trf_block[b].norm2.shift,
+        model.transformer_blocks[b].norm2.shift = assign(
+            model.transformer_blocks[b].norm2.shift,
             params["blocks"][b]["ln_2"]["b"]
         )
 
