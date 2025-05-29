@@ -23,15 +23,25 @@ model.to(device)
 
 # Test the loaded model
 tokenizer = tiktoken.get_encoding("gpt2")
-token_ids = generate_top_k(
-    model=model,
-    idx=text_to_token_ids("Life is beautiful", tokenizer=tokenizer).to(device),
-    max_new_tokens=25,
-    context_size=config["context_length"],
-    top_k=50,
-    temperature=1.0
-)
+# token_ids = generate_top_k(
+#     model=model,
+#     idx=text_to_token_ids("Life is beautiful", tokenizer=tokenizer).to(device),
+#     max_new_tokens=25,
+#     context_size=config["context_length"],
+#     top_k=50,
+#     temperature=1.5
+# )
 
-print(
-    "Output text: ", token_ids_to_text(token_ids, tokenizer=tokenizer)
-)
+for _ in range(10):
+    token_ids = generate_top_k(
+        model=model,
+        idx=text_to_token_ids("Life is beautiful", tokenizer=tokenizer).to(device),
+        max_new_tokens=25,
+        context_size=config["context_length"],
+        top_k=50,
+        temperature=1.5
+    )
+
+    print(
+        "Output text: ", token_ids_to_text(token_ids, tokenizer=tokenizer)
+    )
