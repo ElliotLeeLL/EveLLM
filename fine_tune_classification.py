@@ -35,7 +35,7 @@ tokenizer = tiktoken.get_encoding("gpt2")
 for _ in range(10):
     token_ids = generate_top_k(
         model=model,
-        idx=text_to_token_ids("Life is beautiful", tokenizer=tokenizer).to(device),
+        idx=text_to_token_ids("As far as I know", tokenizer=tokenizer).to(device),
         max_new_tokens=25,
         context_size=config["context_length"],
         top_k=50,
