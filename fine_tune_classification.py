@@ -7,6 +7,7 @@ import time
 from configuration import model_configs
 from model import EveLLMModel
 from utils.model_utils import *
+from utils.diagram_utils import *
 from utils.gpt_download import download_and_load_gpt2
 from dataset.eve_dataset import SpamDataset
 
@@ -103,7 +104,7 @@ test_dataset = SpamDataset(
 )
 
 num_workers = 0
-batch_size = 8
+batch_size = 32
 
 train_loader = DataLoader(
     dataset=train_dataset,
@@ -131,7 +132,7 @@ test_loader = DataLoader(
 start_time = time.time()
 torch.manual_seed(43)
 optimizer = torch.optim.AdamW(model.parameters(), lr=5e-5, weight_decay=0.1)
-num_epochs = 5
+num_epochs = 10
 train_losses, val_losses, train_accuracies, val_accuracies, examples_num = train_classifier_simple(
     model = model,
     train_loader = train_loader,
@@ -146,3 +147,28 @@ end_time = time.time()
 execution_time_minutes = (end_time - start_time) / 60
 print(f"Training completed in {execution_time_minutes:.2f} minutes.")
 
+epochs_tensor = torch.linspace(0, num_epochs, len(train_losses))
+examples_tensor = torch.linspace(0, examples_num, len(train_losses))
+plot_values(
+    epochs_tensor,
+    examples_tensor,
+    train_losses,
+    val_losses,
+)
+
+epochs_tensor = torch.linspace(0, num_epochs, len(train_accuracies))
+examples_tensor = torch.linspace(0, examples_num, len(train_accuracies))
+plot_values(
+    epochs_tensor,
+    examples_tensor,
+    train_accuracies,
+    val_accuracies,
+    label="accuracy",
+)
+
+train_accuracy = calc_accuracy_loader(train_loader, model, device)
+val_accuracy = calc_accuracy_loader(val_loader, model, device)
+test_accuracy = calc_accuracy_loader(test_loader, model, device)
+print(f"Training accuracy: {train_accuracy*100:.2f}%")
+print(f"Validation accuracy: {val_accuracy*100:.2f}%")
+print(f"Test accuracy: {test_accuracy*100:.2f}%")
