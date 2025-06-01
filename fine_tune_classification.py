@@ -2,6 +2,7 @@ import torch
 import tiktoken
 from pathlib import Path
 from torch.utils.data import DataLoader
+import time
 
 from configuration import model_configs
 from model import EveLLMModel
@@ -9,6 +10,42 @@ from utils.model_utils import *
 from utils.gpt_download import download_and_load_gpt2
 from dataset.eve_dataset import SpamDataset
 
+
+def train_classifier_simple(
+    model, train_loader, val_loader, optimizer, device, num_epochs,eval_freq, eval_iter
+):
+    train_losses, val_losses, train_accuracies, val_accuracies = [], [], [], []
+    examples_num, global_step = 0, -1
+
+    for epoch in range(num_epochs):
+        model.train()
+        for input_batch, target_batch in train_loader:
+            optimizer.zero_grad()
+            loss = calc_loss_batch(input_batch, target_batch, model, device)
+            loss.backward()
+            optimizer.step()
+            examples_num += input_batch.shape[0]
+            global_step += 1
+
+            if global_step % eval_freq == 0:
+                train_loss, val_loss = evaluate_model(
+                    model, train_loader, val_loader, device,eval_iter
+                )
+                train_losses.append(train_loss)
+                val_losses.append(val_loss)
+                print(
+                    f"Ep {epoch + 1} (Step {global_step:06d}): "
+                    f"Train loss {train_loss:.3f}, "
+                    f"Val loss {val_loss:.3f}"
+                )
+
+        train_accuracy = calc_accuracy_loader(model=model, data_loader=train_loader, device=device, num_batches=eval_iter)
+        val_accuracy = calc_accuracy_loader(model=model, data_loader=val_loader, device=device, num_batches=eval_iter)
+        print(f"Training accuracy: {train_accuracy * 100:.2f}% | ", end="")
+        print(f"Validation accuracy: {val_accuracy * 100:.2f}%")
+        train_accuracies.append(train_accuracy)
+        val_accuracies.append(val_accuracy)
+    return train_losses, val_losses, train_accuracies, val_accuracies, examples_num
 
 # Create a model with config
 device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
@@ -41,13 +78,9 @@ for param in model.final_norm.parameters():
 
 tokenizer = tiktoken.get_encoding("gpt2")
 inputs = torch.tensor(tokenizer.encode("Do you have time")).unsqueeze(0)
-print(inputs)
-print(inputs.shape)
 
 with torch.no_grad():
     outputs = model(inputs.to(device))
-print(outputs)
-print(outputs.shape)
 
 extracted_path = "sms_spam_collection"
 
@@ -94,29 +127,22 @@ test_loader = DataLoader(
     drop_last=True
 )
 
-train_accuracy = calc_accuracy_loader(
-    train_loader, model, device, num_batches=10
+# Train the model for classification tasks
+start_time = time.time()
+torch.manual_seed(43)
+optimizer = torch.optim.AdamW(model.parameters(), lr=5e-5, weight_decay=0.1)
+num_epochs = 5
+train_losses, val_losses, train_accuracies, val_accuracies, examples_num = train_classifier_simple(
+    model = model,
+    train_loader = train_loader,
+    val_loader = val_loader,
+    device = device,
+    optimizer = optimizer,
+    num_epochs = num_epochs,
+    eval_freq = 50,
+    eval_iter = 5
 )
-val_accuracy = calc_accuracy_loader(
-    val_loader, model, device, num_batches=10
-)
-test_accuracy = calc_accuracy_loader(
-    test_loader, model, device, num_batches=10
-)
-print(f"Training accuracy: {train_accuracy*100:.2f}%")
-print(f"Validation accuracy: {val_accuracy*100:.2f}%")
-print(f"Test accuracy: {test_accuracy*100:.2f}%")
+end_time = time.time()
+execution_time_minutes = (end_time - start_time) / 60
+print(f"Training completed in {execution_time_minutes:.2f} minutes.")
 
-with torch.no_grad():
-    train_loss = calc_loss_loader(
-        train_loader, model, device, num_batches=5
-    )
-    val_loss = calc_loss_loader(
-        val_loader, model, device, num_batches=5
-    )
-    test_loss = calc_loss_loader(
-        test_loader, model, device, num_batches=5
-    )
-print(f"Training loss: {train_loss:.3f}")
-print(f"Validation loss: {val_loss:.3f}")
-print(f"Test loss: {test_loss:.3f}")
