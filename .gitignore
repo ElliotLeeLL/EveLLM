@@ -176,3 +176,7 @@ cython_debug/
 /.idea
 
 /gpt2
+/result_diagrams
+/result_models
+
+/sms_spam_collection
