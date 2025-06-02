@@ -132,7 +132,7 @@ test_loader = DataLoader(
 start_time = time.time()
 torch.manual_seed(43)
 optimizer = torch.optim.AdamW(model.parameters(), lr=5e-5, weight_decay=0.1)
-num_epochs = 10
+num_epochs = 5
 train_losses, val_losses, train_accuracies, val_accuracies, examples_num = train_classifier_simple(
     model = model,
     train_loader = train_loader,
@@ -172,3 +172,34 @@ test_accuracy = calc_accuracy_loader(test_loader, model, device)
 print(f"Training accuracy: {train_accuracy*100:.2f}%")
 print(f"Validation accuracy: {val_accuracy*100:.2f}%")
 print(f"Test accuracy: {test_accuracy*100:.2f}%")
+
+# Predict messages
+text_1 = (
+    "You are a winner you have been specially"
+    " selected to receive $1000 cash or a $2000 award."
+)
+text_2 = (
+    "Hey, just wanted to check if we're still on"
+    " for dinner tonight? Let me know!"
+)
+label1 = classify_review(
+    text_1,
+    model,
+    tokenizer,
+    device,
+    max_length=train_dataset.max_length,
+)
+label2 = classify_review(
+    text_2,
+    model,
+    tokenizer,
+    device,
+    max_length=train_dataset.max_length,
+)
+
+print("Label1: ", label1)
+print("Label2: ", label2)
+
+torch.save(model.state_dict(), Path("result_models") / "review_classifier.pth" )
+# model_state_dict = torch.load("review_classifier.pth, map_location=device")
+# model.load_state_dict(model_state_dict)

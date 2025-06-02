@@ -1,4 +1,6 @@
 import matplotlib.pyplot as plt
+from pathlib import Path
+
 
 def plot_values(
         epochs_seen, examples_num, train_values, val_values,
@@ -17,5 +19,5 @@ def plot_values(
     ax2.set_xlabel("Example seen")
 
     fig.tight_layout()
-    plt.savefig(f"{label}-plot.pdf")
+    plt.savefig(Path("result_diagrams") / f"{label}-plot.pdf")
     plt.show()
