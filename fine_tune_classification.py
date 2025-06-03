@@ -49,6 +49,7 @@ def train_classifier_simple(
     return train_losses, val_losses, train_accuracies, val_accuracies, examples_num
 
 # Create a model with config
+torch.manual_seed(43)
 device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 model_name = "eve-llm-1558M"
 config = model_configs[model_name]
@@ -130,7 +131,6 @@ test_loader = DataLoader(
 
 # Train the model for classification tasks
 start_time = time.time()
-torch.manual_seed(43)
 optimizer = torch.optim.AdamW(model.parameters(), lr=5e-5, weight_decay=0.1)
 num_epochs = 5
 train_losses, val_losses, train_accuracies, val_accuracies, examples_num = train_classifier_simple(
