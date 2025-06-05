@@ -180,3 +180,5 @@ cython_debug/
 /result_models
 
 /sms_spam_collection
+
+/instruction_data
