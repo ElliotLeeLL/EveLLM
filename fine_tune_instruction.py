@@ -12,7 +12,7 @@ from utils.gpt_download import download_and_load_gpt2
 from dataset.eve_dataset import InstructionDataset, custom_collate_fn
 from instruction_dataset_download import download_and_load_file
 
-# Create a model with config
+# Create the model with a config
 device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 torch.manual_seed(43)
 model_name = "eve-llm-355M"
