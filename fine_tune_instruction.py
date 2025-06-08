@@ -52,8 +52,8 @@ test_portion = int(len(data) * 0.1)
 val_portion = int(len(data) - train_portion - test_portion)
 
 train_data = data[:train_portion]
-test_portion = data[train_portion:train_portion + test_portion]
 val_data = data[train_portion + test_portion:]
+test_data = data[train_portion:train_portion + test_portion]
 
 train_portion = int()
 num_workers = 0
@@ -86,7 +86,3 @@ test_loader = DataLoader(
     drop_last=False,
     num_workers=num_workers
 )
-
-for item in train_dataset:
-    print(item)
-    break

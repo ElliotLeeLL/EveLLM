@@ -73,7 +73,7 @@ def custom_collate_fn(
         targets_lst.append(targets)
 
     inputs_tensor = torch.stack(inputs_lst).to(device)
-    targets_tensor = torch.tensor(targets_lst).to(device)
+    targets_tensor = torch.stack(targets_lst).to(device)
     return inputs_tensor, targets_tensor
 
 def random_split(df, train_fraction, validation_fraction):
