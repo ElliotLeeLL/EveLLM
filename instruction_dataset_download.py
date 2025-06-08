@@ -3,7 +3,7 @@ import os
 import urllib
 from pathlib import Path
 
-def down_and_load_file(file_path, url):
+def download_and_load_file(file_path, url):
     if not os.path.exists(file_path):
         with urllib.request.urlopen(url) as response:
             text_data = response.read().decode("utf-8")
@@ -19,6 +19,6 @@ def down_and_load_file(file_path, url):
 if __name__ == '__main__':
     file_path = Path("instruction_data") / "instruction_data.json"
     url = "https://raw.githubusercontent.com/tatsu-lab/stanford_alpaca/main/alpaca_data.json"
-    data = down_and_load_file(file_path, url)
+    data = download_and_load_file(file_path, url)
 
     print("Entity number: ", len(data))
