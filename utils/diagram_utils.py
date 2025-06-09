@@ -6,6 +6,10 @@ def plot_values(
         epochs_seen, examples_num, train_values, val_values,
         label="loss"
 ):
+    # Ensure the output dictionary exists
+    output_dir = Path("result_diagrams")
+    output_dir.mkdir(parents=True, exist_ok=True)
+
     fig, ax1 = plt.subplots(figsize=(5, 3))
 
     ax1.plot(epochs_seen, train_values, label=f"Training {label}")

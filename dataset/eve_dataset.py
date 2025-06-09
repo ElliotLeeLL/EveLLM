@@ -33,6 +33,8 @@ class InstructionDataset(Dataset):
             instruction_alpaca = format_input_alpaca(entry)
             response_text = f"\n\n### Response: \n{entry['output']}"
             full_text = instruction_alpaca + response_text
+            # if len(full_text) > 1024:
+            #     continue
             self.encoded_texts.append(
                 tokenizer.encode(full_text)
             )

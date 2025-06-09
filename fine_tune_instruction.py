@@ -56,15 +56,15 @@ train_data = data[:train_portion]
 val_data = data[train_portion + test_portion:]
 test_data = data[train_portion:train_portion + test_portion]
 
-# train_data = train_data[:850]
-# val_data = val_data[:50]
-# test_data = test_data[:100]
+train_data = train_data[:85]
+val_data = val_data[:5]
+test_data = test_data[:10]
 
 train_portion = int()
 num_workers = 0
-batch_size = 8
+batch_size = 4
 
-customized_collate_fn = partial(
+custom_collate_fn = partial(
     custom_collate_fn,
     device=device,
     allowed_max_length=1024
@@ -125,7 +125,7 @@ print(f"Training completed in {execution_time_minutes:.2f} minutes.")
 
 # Plot diagram for losses
 epochs_tensor = torch.linspace(0, num_epochs, len(train_losses))
-examples_tensor = torch.linspace(0, tokens_seen, len(train_losses))
+examples_tensor = torch.linspace(0, tokens_seen[-1], len(train_losses))
 plot_values(
     epochs_tensor,
     examples_tensor,
