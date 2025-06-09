@@ -40,33 +40,29 @@ def evaluate_model(
 def calc_loss_batch(input_batch, target_batch, model, device):
     input_batch = input_batch.to(device)
     target_batch = target_batch.to(device)
-    logits = model(input_batch)[:, -1, :]
+    logits = model(input_batch)
     loss = torch.nn.functional.cross_entropy(
-        logits, target_batch
+        logits.flatten(start_dim=0, end_dim=1), target_batch.flatten()
     )
     return loss
 
-def calc_accuracy_loader(data_loader, model, device, num_batches=None):
-    model.eval()
-    correct_predictions, num_examples = 0, 0
-    if num_batches is None:
+def calc_loss_loader(data_loader, model, device, num_batches=None):
+    total_loss = 0
+    if len(data_loader) == 0:
+        return float("nan")
+    elif num_batches is None:
         num_batches = len(data_loader)
     else:
         num_batches = min(num_batches, len(data_loader))
     for i, (input_batch, target_batch) in enumerate(data_loader):
         if i < num_batches:
-            input_batch = input_batch.to(device)
-            target_batch = target_batch.to(device)
-            with torch.no_grad():
-                logits = model(input_batch)[:, -1, :]
-            predicted_labels = torch.argmax(logits, dim=-1)
-            num_examples += predicted_labels.shape[0]
-            correct_predictions += (
-                (predicted_labels == target_batch).sum().item()
+            loss = calc_loss_batch(
+                input_batch=input_batch, target_batch=target_batch, model=model, device=device
             )
+            total_loss += loss.item()
         else:
             break
-    return correct_predictions / num_examples
+    return total_loss / num_batches
 
 def calc_loss_loader(data_loader, model, device, num_batches=None):
     total_loss = 0
@@ -269,3 +265,52 @@ def format_input_phi3(entry):
         f"\n\n"
     )
     return user_text
+
+def train_model_simple(
+        model,
+        train_loader,
+        val_loader,
+        optimizer,
+        device,
+        num_epochs,
+        eval_freq,
+        eval_iter,
+        start_context,
+        tokenizer
+):
+    train_losses, val_losses, track_tokens_seen = [], [], []
+    tokens_seen, global_step = 0, -1
+    for epoch in range(num_epochs):
+        model.train()
+        for input_batch, target_batch in train_loader:
+            optimizer.zero_grad()
+            loss = calc_loss_batch(
+                input_batch, target_batch, model, device
+            )
+            loss.backward()
+            optimizer.step()
+            tokens_seen += input_batch.numel()
+            global_step += 1
+
+            if global_step % eval_freq == 0:
+                train_loss, val_loss = evaluate_model(
+                    model, train_loader, val_loader, device, eval_iter
+                )
+                train_losses.append(train_loss)
+                val_losses.append(val_loss)
+                track_tokens_seen.append(tokens_seen)
+                print(
+                    f"Ep {epoch + 1} (Step {global_step:06d}) "
+                    f"Train loss {train_loss:.3f} "
+                    f"Val loss {val_loss:.3f} "
+                )
+            # Clean the cache at the end of each batch
+            torch.cuda.empty_cache()
+        generate_and_print_top_k(
+            model, tokenizer, device, start_context
+        )
+        # generate_and_print_sample(
+        #     model, tokenizer, device, start_context
+        # )
+
+    return train_losses, val_losses, track_tokens_seen

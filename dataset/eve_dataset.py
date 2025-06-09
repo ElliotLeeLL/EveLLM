@@ -41,7 +41,7 @@ class InstructionDataset(Dataset):
         return self.encoded_texts[idx]
 
     def __len__(self):
-        return len(self.data)
+        return len(self.encoded_texts)
 
 
 def custom_collate_fn(
