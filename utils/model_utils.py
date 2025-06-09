@@ -1,6 +1,7 @@
 import torch
 import numpy as np
 import tiktoken
+from pathlib import Path
 
 def text_to_token_ids(text, tokenizer):
     encoded = tokenizer.encode(text, allowed_special={'<|endoftext|>'})
@@ -363,3 +364,8 @@ def train_model(
         # )
 
     return train_losses, val_losses, track_tokens_seen
+
+def save_model(model, config):
+    dic_name = Path("result_models")
+    file_name = Path(f"{config['model_name']}_cl_{config['context_length']}_ed_{config['emb_dim']}.pth")
+    torch.save(model.state_dict(), dic_name / file_name)

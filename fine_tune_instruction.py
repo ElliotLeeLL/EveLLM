@@ -67,7 +67,7 @@ batch_size = 4
 custom_collate_fn = partial(
     custom_collate_fn,
     device=device,
-    allowed_max_length=1024
+    allowed_max_length=config["context_length"],
 )
 
 train_dataset = InstructionDataset(train_data, tokenizer)
@@ -106,8 +106,8 @@ with torch.no_grad():
     val_loss = calc_loss_loader(
         val_loader, model, device, num_batches=8
     )
-print("Initial Training loss:", train_loss)
-print("Initial Validation loss:", val_loss)
+print("The original training loss:", train_loss)
+print("The original validation loss:", val_loss)
 
 start_time = time.time()
 optimizer = torch.optim.AdamW(model.parameters(), lr=0.00005, weight_decay=0.1)
@@ -133,6 +133,6 @@ plot_values(
     val_losses,
 )
 
-torch.save(model.state_dict(), Path("result_models") / "eve_llm_instruction.pth" )
+save_model(model, config)
 # model_state_dict = torch.load("eve_llm_instruction.pth, map_location=device")
 # model.load_state_dict(model_state_dict)

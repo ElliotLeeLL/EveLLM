@@ -17,6 +17,7 @@ model_configs = {
         "n_heads": 12,
         "drop_rate": 0.1,
         "qkv_bias": True,
+        "model_name": "eve_llm_124M",
     },
     "eve-llm-355M": {
         "vocab_size": 50257,
@@ -26,6 +27,7 @@ model_configs = {
         "n_heads": 16,
         "drop_rate": 0.1,
         "qkv_bias": True,
+        "model_name": "eve_llm_355M",
     },
     "eve-llm-774M": {
         "vocab_size": 50257,
@@ -35,6 +37,7 @@ model_configs = {
         "n_heads": 20,
         "drop_rate": 0.1,
         "qkv_bias": True,
+        "model_name": "eve_llm_774M",
     },
     "eve-llm-1558M": {
         "vocab_size": 50257,
@@ -44,5 +47,6 @@ model_configs = {
         "n_heads": 25,
         "drop_rate": 0.1,
         "qkv_bias": True,
+        "model_name": "eve_llm_1558M",
     }
 }
