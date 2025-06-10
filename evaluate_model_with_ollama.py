@@ -1,5 +1,6 @@
 import json
 import urllib.request
+from datetime import datetime
 from pathlib import Path
 from tqdm import tqdm
 
@@ -55,15 +56,19 @@ def generate_model_scores(
         score = query_model(prompt, model)
         try:
             scores.append(float(score))
+            entry["score"] = score
         except ValueError:
             print(f"Could not convert score: {score}")
             continue
-    return scores
+    return scores, test_data
 
 if __name__ == "__main__":
     result_data_path = Path("result_data") / "instruction_data_with_response.json"
     with open(result_data_path, "r") as file:
         test_data = json.load(file)
-    scores = generate_model_scores(test_data, "model_response")
+    scores, result_data_with_score  = generate_model_scores(test_data, "model_response")
+    scored_result_data_path = Path("result_data") / f"instruction_data_with_response_and_score_{datetime.now().strftime('%Y%m%d%H%M')}.json"
+    with open(scored_result_data_path, "w") as file:
+        json.dump(result_data_with_score, file, indent=4)
     print(f"Number of scores: {len(scores)} of {len(test_data)}")
     print(f"Average score: {sum(scores) / len(scores):.2f}\n")

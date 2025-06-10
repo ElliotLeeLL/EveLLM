@@ -1,3 +1,5 @@
+from datetime import datetime
+
 import torch
 import numpy as np
 import tiktoken
@@ -367,5 +369,5 @@ def train_model(
 
 def save_model(model, config):
     dic_name = Path("result_models")
-    file_name = Path(f"{config['model_name']}_cl_{config['context_length']}_ed_{config['emb_dim']}.pth")
+    file_name = Path(f"{config['model_name']}_cl_{config['context_length']}_ed_{config['emb_dim']}_{datetime.now().strftime('%Y%m%d%H%M')}.pth")
     torch.save(model.state_dict(), dic_name / file_name)
