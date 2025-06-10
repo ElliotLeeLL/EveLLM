@@ -178,6 +178,7 @@ cython_debug/
 /gpt2
 /result_diagrams
 /result_models
+/result_data
 
 /sms_spam_collection
 
