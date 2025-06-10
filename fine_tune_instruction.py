@@ -1,9 +1,12 @@
+import json
+
 import torch
 import tiktoken
 from pathlib import Path
 from torch.utils.data import DataLoader
 import time
 from functools import partial
+from tqdm import tqdm
 
 from configuration import model_configs
 from model import EveLLMModel
@@ -132,7 +135,27 @@ plot_values(
     val_losses,
 )
 
+for i, entry in tqdm(enumerate(test_data), total=len(test_data)):
+    input_text = format_input_alpaca(entry)
 
+    token_ids = generate_top_k(
+        model=model,
+        idx=text_to_token_ids(input_text, tokenizer).to(device),
+        max_new_tokens=256,
+        context_size=config["context_length"],
+        eos_id=50256
+    )
+    generated_text = token_ids_to_text(token_ids, tokenizer)
+    response_text = (
+        generated_text[len(input_text):]
+        .replace("### Response:", "")
+        .strip()
+    )
+    test_data[i]["model_response"] = response_text
+
+result_data_path = Path("result_data") / "instruction_data_with_response.json"
+with open(result_data_path, "w") as file:
+    json.dump(test_data, file, indent=4)
 
 save_model(model, config)
 # model_state_dict = torch.load("eve_llm_instruction.pth", map_location=device)
