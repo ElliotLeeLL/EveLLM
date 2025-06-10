@@ -26,7 +26,7 @@ model.eval()
 settings, params = download_and_load_gpt2(
 model_size="355M", models_dir="gpt2"
 )
-load_weights_into_evellm_gpt(model, params)
+load_weights_into_eve_llm_gpt(model, params)
 model.to(device)
 
 # Froze parameters for all layers except the last transformer block and the output layer
@@ -60,7 +60,6 @@ train_data = train_data[:85]
 val_data = val_data[:5]
 test_data = test_data[:10]
 
-train_portion = int()
 num_workers = 0
 batch_size = 4
 
@@ -133,6 +132,8 @@ plot_values(
     val_losses,
 )
 
+
+
 save_model(model, config)
-# model_state_dict = torch.load("eve_llm_instruction.pth, map_location=device")
+# model_state_dict = torch.load("eve_llm_instruction.pth", map_location=device)
 # model.load_state_dict(model_state_dict)

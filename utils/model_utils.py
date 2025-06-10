@@ -141,7 +141,7 @@ def generate_top_k(
             probs = torch.softmax(logits, dim=-1)
             idx_next = torch.multinomial(probs, num_samples=1)
         else:
-            idx_next = torch.argmax(logits, dim=-1, keep_dim=True)
+            idx_next = torch.argmax(logits, dim=-1, keepdim=True)
         if idx_next.item() == eos_id:
             break
         idx = torch.cat([idx, idx_next], dim=1)
@@ -154,7 +154,7 @@ def assign(left, right):
         )
     return torch.nn.Parameter(torch.tensor(right))
 
-def load_weights_into_evellm_gpt(model, params):
+def load_weights_into_eve_llm_gpt(model, params):
     model.position_embedding.weight = assign(
         model.position_embedding.weight, params['wpe']
     )
@@ -167,7 +167,7 @@ def load_weights_into_evellm_gpt(model, params):
         q_w, k_w, v_w = np.split(
             (params["blocks"][b]["attn"]["c_attn"])["w"], 3, axis=-1
         )
-        model.transformer_blocks[b].attention_layer.W_query.wight = assign(
+        model.transformer_blocks[b].attention_layer.W_query.weight = assign(
             model.transformer_blocks[b].attention_layer.W_query.weight, q_w.T
         )
         model.transformer_blocks[b].attention_layer.W_key.weight = assign(
