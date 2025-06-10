@@ -62,10 +62,10 @@ if __name__ == "__main__":
     val_data = data[train_portion + test_portion:]
     test_data = data[train_portion:train_portion + test_portion]
 
-    # Test code
-    train_data = train_data[:85]
-    val_data = val_data[:5]
-    test_data = test_data[:10]
+    # # Test code
+    # train_data = train_data[:85]
+    # val_data = val_data[:5]
+    # test_data = test_data[:10]
 
     num_workers = 0
     batch_size = 4
@@ -81,7 +81,7 @@ if __name__ == "__main__":
         train_dataset,
         batch_size=batch_size,
         collate_fn=custom_collate_fn,
-        shuffle=False,
+        shuffle=True,
         drop_last=False,
         num_workers=num_workers
     )
