@@ -180,5 +180,6 @@ cython_debug/
 /result_models
 /result_data
 /instruction_data
+/aclImdb_data
 
 /sms_spam_collection
