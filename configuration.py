@@ -18,7 +18,7 @@ model_configs = {
         "drop_rate": 0.1,
         "qkv_bias": True,
     },
-    "eve-llm-335M": {
+    "eve-llm-355M": {
         "vocab_size": 50257,
         "context_length": 1024,
         "emb_dim": 1024,

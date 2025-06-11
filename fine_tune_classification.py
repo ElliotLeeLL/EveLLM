@@ -14,14 +14,14 @@ from dataset.eve_dataset import SpamDataset
 if __name__ == "__main__":
     # Create a model with config
     device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
-    model_name = "eve-llm-1558M"
+    model_name = "eve-llm-355M"
     config = model_configs[model_name]
     model = EveLLMModel(config)
     model.eval()
 
     # Load weight into the model
     settings, params = download_and_load_gpt2(
-        model_size="1558M", models_dir="gpt2"
+        model_size="355M", models_dir="gpt2"
     )
     load_weights_into_evellm_gpt(model, params)
 
