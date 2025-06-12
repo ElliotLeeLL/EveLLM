@@ -1,3 +1,5 @@
+from datetime import datetime
+
 import torch
 import tiktoken
 from pathlib import Path
@@ -9,7 +11,7 @@ from model import EveLLMModel
 from utils.model_utils import *
 from utils.diagram_utils import *
 from utils.gpt_download import download_and_load_gpt2
-from dataset.eve_dataset import SpamDataset
+from dataset.eve_dataset import SpamDataset, IMDBDataset
 
 if __name__ == "__main__":
     # Create a model with config
@@ -39,35 +41,29 @@ if __name__ == "__main__":
         param.requires_grad = True
     for param in model.final_norm.parameters():
         param.requires_grad = True
-
     tokenizer = tiktoken.get_encoding("gpt2")
-    inputs = torch.tensor(tokenizer.encode("Do you have time")).unsqueeze(0)
 
-    with torch.no_grad():
-        outputs = model(inputs.to(device))
-
-    extracted_path = "sms_spam_collection"
-
-    train_dataset = SpamDataset(
+    extracted_path = "aclImdb_data"
+    train_dataset = IMDBDataset(
         csv_file=Path(extracted_path) / "train.csv",
-        max_length=None,
+        max_length=config["context_length"],
         tokenizer=tokenizer
     )
 
-    val_dataset = SpamDataset(
-        csv_file=Path(extracted_path) / "validation.csv",
+    val_dataset = IMDBDataset(
+        csv_file=Path(extracted_path) / "val.csv",
         max_length=train_dataset.max_length,
         tokenizer=tokenizer
     )
 
-    test_dataset = SpamDataset(
+    test_dataset = IMDBDataset(
         csv_file=Path(extracted_path) / "test.csv",
         max_length=train_dataset.max_length,
         tokenizer=tokenizer
     )
 
     num_workers = 0
-    batch_size = 32
+    batch_size = 8
 
     train_loader = DataLoader(
         dataset=train_dataset,
@@ -129,6 +125,9 @@ if __name__ == "__main__":
         label="accuracy",
     )
 
+    save_list_data_txt(train_losses, f"train_losses_{datetime.now().strftime('%Y%m%d%H%M')}.txt")
+    save_list_data_txt(train_accuracies, f"train_accuracies_{datetime.now().strftime('%Y%m%d%H%M')}.txt")
+
     train_accuracy = calc_accuracy_loader(train_loader, model, device)
     val_accuracy = calc_accuracy_loader(val_loader, model, device)
     test_accuracy = calc_accuracy_loader(test_loader, model, device)
@@ -136,33 +135,6 @@ if __name__ == "__main__":
     print(f"Validation accuracy: {val_accuracy * 100:.2f}%")
     print(f"Test accuracy: {test_accuracy * 100:.2f}%")
 
-    # Predict messages
-    text_1 = (
-        "You are a winner you have been specially"
-        " selected to receive $1000 cash or a $2000 award."
-    )
-    text_2 = (
-        "Hey, just wanted to check if we're still on"
-        " for dinner tonight? Let me know!"
-    )
-    label1 = classify_review(
-        text_1,
-        model,
-        tokenizer,
-        device,
-        max_length=train_dataset.max_length,
-    )
-    label2 = classify_review(
-        text_2,
-        model,
-        tokenizer,
-        device,
-        max_length=train_dataset.max_length,
-    )
-
-    print("Label1: ", label1)
-    print("Label2: ", label2)
-
-    torch.save(model.state_dict(), Path("result_models") / "review_classifier.pth")
+    torch.save(model.state_dict(), Path("result_models") / f"review_classifier_{datetime.now().strftime('%Y%m%d%H%M')}.pth")
     # model_state_dict = torch.load("review_classifier.pth, map_location=device")
     # model.load_state_dict(model_state_dict)

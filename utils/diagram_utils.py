@@ -1,3 +1,5 @@
+from datetime import datetime
+
 import matplotlib.pyplot as plt
 from pathlib import Path
 
@@ -19,5 +21,5 @@ def plot_values(
     ax2.set_xlabel("Example seen")
 
     fig.tight_layout()
-    plt.savefig(Path("result_diagrams") / f"{label}-plot.pdf")
+    plt.savefig(Path("result_diagrams") / f"{label}-plot-{datetime.now().strftime('%Y%m%d%H%M')}.pdf")
     plt.show()

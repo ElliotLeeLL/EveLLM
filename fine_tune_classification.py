@@ -67,7 +67,7 @@ if __name__ == "__main__":
     )
 
     num_workers = 0
-    batch_size = 32
+    batch_size = 8
 
     train_loader = DataLoader(
         dataset=train_dataset,
@@ -128,6 +128,9 @@ if __name__ == "__main__":
         val_accuracies,
         label="accuracy",
     )
+
+    save_list_data_txt(train_losses, f"train_losses_{datetime.now().strftime('%Y%m%d%H%M')}.txt")
+    save_list_data_txt(train_accuracies, f"train_accuracies_{datetime.now().strftime('%Y%m%d%H%M')}.txt")
 
     train_accuracy = calc_accuracy_loader(train_loader, model, device)
     val_accuracy = calc_accuracy_loader(val_loader, model, device)

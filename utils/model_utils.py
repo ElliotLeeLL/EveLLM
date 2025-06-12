@@ -1,3 +1,6 @@
+import os
+from pathlib import Path
+
 import torch
 import numpy as np
 import tiktoken
@@ -46,6 +49,24 @@ def calc_loss_batch(input_batch, target_batch, model, device):
     )
     return loss
 
+def calc_loss_loader(data_loader, model, device, num_batches=None):
+    total_loss = 0
+    if len(data_loader) == 0:
+        return float("nan")
+    elif num_batches is None:
+        num_batches = len(data_loader)
+    else:
+        num_batches = min(num_batches, len(data_loader))
+    for i, (input_batch, target_batch) in enumerate(data_loader):
+        if i < num_batches:
+            loss = calc_loss_batch(
+                input_batch=input_batch, target_batch=target_batch, model=model, device=device
+            )
+            total_loss += loss.item()
+        else:
+            break
+    return total_loss / num_batches
+
 def calc_accuracy_loader(data_loader, model, device, num_batches=None):
     model.eval()
     correct_predictions, num_examples = 0, 0
@@ -67,24 +88,6 @@ def calc_accuracy_loader(data_loader, model, device, num_batches=None):
         else:
             break
     return correct_predictions / num_examples
-
-def calc_loss_loader(data_loader, model, device, num_batches=None):
-    total_loss = 0
-    if len(data_loader) == 0:
-        return float("nan")
-    elif num_batches is None:
-        num_batches = len(data_loader)
-    else:
-        num_batches = min(num_batches, len(data_loader))
-    for i, (input_batch, target_batch) in enumerate(data_loader):
-        if i < num_batches:
-            loss = calc_loss_batch(
-                input_batch=input_batch, target_batch=target_batch, model=model, device=device
-            )
-            total_loss += loss.item()
-        else:
-            break
-    return total_loss / num_batches
 
 def generate_and_print_sample(
     model, tokenizer, device, start_context
@@ -302,3 +305,11 @@ def train_classifier_simple(
         train_accuracies.append(train_accuracy)
         val_accuracies.append(val_accuracy)
     return train_losses, val_losses, train_accuracies, val_accuracies, examples_num
+
+def save_list_data_txt(data, file_name, dic_name="result_data" ):
+    if not os.path.exists(dic_name):
+        os.makedirs(dic_name)
+    file_path = Path(dic_name) / file_name
+    with open(file_path, "w", encoding="utf-8") as f:
+        for value in data:
+            f.write(f"{value}\n")

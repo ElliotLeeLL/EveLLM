@@ -148,88 +148,117 @@ def create_dataloader(txt, batch_size=4, max_length=256, stride=128, shuffle=Tru
     )
     return dataloader
 
-# Test code
-# with open("../the-verdict.txt", "r", encoding="utf-8") as f:
-#     raw_text = f.read()
-#
-# max_length = 4
-# vocab_size = 50257
-# output_dim = 256
-#
-# dataloader = create_dataloader(
-#     raw_text,
-#     batch_size=8,
-#     max_length=max_length,
-#     stride=max_length,
-#     shuffle=True,
-#     drop_last=True,
-#     num_workers=0
-# )
-#
-# data_iter = iter(dataloader)
-#
-# token_embedding_layer = torch.nn.Embedding(vocab_size, output_dim)
-# inputs, targets = next(data_iter)
-# print("The shape of inputs: ")
-# print(inputs.shape)
-# token_embedded = token_embedding_layer(inputs)
-# print("The shape of embedded inputs: ")
-# print(token_embedded.shape)
-# pos_embedding_layer = torch.nn.Embedding(max_length, output_dim)
-# pos_token_embedded = pos_embedding_layer(torch.arange(max_length))
-# print("The shape of embedded positional inputs: ")
-# print(pos_token_embedded.shape)
+class IMDBDataset(Dataset):
+    def __init__(self, csv_file, tokenizer, max_length=None, pad_token_id=50256):
+        self.data = pd.read_csv(csv_file)
+        self.max_length = max_length if max_length is not None else self._longest_encoded_length(tokenizer)
+        self.encoded_texts = [
+            tokenizer.encode(text)[:self.max_length]
+            for text in self.data["text"]
+        ]
+        self.encoded_texts = [
+            text + [pad_token_id] * (self.max_length - len(text))
+            for text in self.encoded_texts
+        ]
 
-# # Test code
-# url = "https://archive.ics.uci.edu/static/public/228/sms+spam+collection.zip"
-# zip_path = "sms_spam_collection.zip"
-# extracted_path = "sms_spam_collection"
-# data_file_path = Path(extracted_path) / "SMSSpamCollection.tsv"
-# download_and_unzip_spam_data(url, zip_path, extracted_path, data_file_path)
-#
-#
-# # Test code
-# tokenizer = tiktoken.get_encoding("gpt2")
-# train_dataset = SpamDataset(
-#     csv_file="train.csv",
-#     max_length=None,
-#     tokenizer=tokenizer
-# )
-#
-# val_dataset = SpamDataset(
-#     csv_file="validation.csv",
-#     max_length=train_dataset.max_length,
-#     tokenizer=tokenizer
-# )
-#
-# test_dataset = SpamDataset(
-#     csv_file="test.csv",
-#     max_length=train_dataset.max_length,
-#     tokenizer=tokenizer
-# )
-#
-# num_workers = 0
-# batch_size = 8
-#
-# train_loader = DataLoader(
-#     dataset=train_dataset,
-#     batch_size=batch_size,
-#     shuffle=True,
-#     num_workers=num_workers,
-#     drop_last=True
-# )
-# val_loader = DataLoader(
-#     dataset=val_dataset,
-#     batch_size=batch_size,
-#     shuffle=True,
-#     num_workers=num_workers,
-#     drop_last=True
-# )
-# test_loader = DataLoader(
-#     dataset=test_dataset,
-#     batch_size=batch_size,
-#     shuffle=True,
-#     num_workers=num_workers,
-#     drop_last=True
-# )
+    def __getitem__(self, idx):
+        text = self.encoded_texts[idx]
+        label = self.data.iloc[idx]["label"]
+        return torch.tensor(text, dtype=torch.long), torch.tensor(label, dtype=torch.long)
+
+    def __len__(self):
+        return len(self.encoded_texts)
+
+    def _longest_encoded_length(self, tokenizer):
+        max_length = 0
+        for text in self.data['text']:
+            encoded_length = len(tokenizer.encode(text))
+            if encoded_length > max_length:
+                max_length = encoded_length
+        return max_length
+
+# Test code
+if __name__ == "__main__":
+    with open("../the-verdict.txt", "r", encoding="utf-8") as f:
+        raw_text = f.read()
+
+    max_length = 4
+    vocab_size = 50257
+    output_dim = 256
+
+    dataloader = create_dataloader(
+        raw_text,
+        batch_size=8,
+        max_length=max_length,
+        stride=max_length,
+        shuffle=True,
+        drop_last=True,
+        num_workers=0
+    )
+
+    data_iter = iter(dataloader)
+
+    token_embedding_layer = torch.nn.Embedding(vocab_size, output_dim)
+    inputs, targets = next(data_iter)
+    print("The shape of inputs: ")
+    print(inputs.shape)
+    token_embedded = token_embedding_layer(inputs)
+    print("The shape of embedded inputs: ")
+    print(token_embedded.shape)
+    pos_embedding_layer = torch.nn.Embedding(max_length, output_dim)
+    pos_token_embedded = pos_embedding_layer(torch.arange(max_length))
+    print("The shape of embedded positional inputs: ")
+    print(pos_token_embedded.shape)
+
+    # Test code
+    url = "https://archive.ics.uci.edu/static/public/228/sms+spam+collection.zip"
+    zip_path = "sms_spam_collection.zip"
+    extracted_path = "sms_spam_collection"
+    data_file_path = Path(extracted_path) / "SMSSpamCollection.tsv"
+    download_and_unzip_spam_data(url, zip_path, extracted_path, data_file_path)
+
+    # Test code
+    tokenizer = tiktoken.get_encoding("gpt2")
+    train_dataset = SpamDataset(
+        csv_file="train.csv",
+        max_length=None,
+        tokenizer=tokenizer
+    )
+
+    val_dataset = SpamDataset(
+        csv_file="validation.csv",
+        max_length=train_dataset.max_length,
+        tokenizer=tokenizer
+    )
+
+    test_dataset = SpamDataset(
+        csv_file="test.csv",
+        max_length=train_dataset.max_length,
+        tokenizer=tokenizer
+    )
+
+    num_workers = 0
+    batch_size = 8
+
+    train_loader = DataLoader(
+        dataset=train_dataset,
+        batch_size=batch_size,
+        shuffle=True,
+        num_workers=num_workers,
+        drop_last=True
+    )
+    val_loader = DataLoader(
+        dataset=val_dataset,
+        batch_size=batch_size,
+        shuffle=True,
+        num_workers=num_workers,
+        drop_last=True
+    )
+    test_loader = DataLoader(
+        dataset=test_dataset,
+        batch_size=batch_size,
+        shuffle=True,
+        num_workers=num_workers,
+        drop_last=True
+    )
 
