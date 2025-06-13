@@ -4,6 +4,10 @@ from pathlib import Path
 import torch
 import numpy as np
 import tiktoken
+from torch import nn
+
+from layers.lora import LinearLora
+
 
 def text_to_token_ids(text, tokenizer):
     encoded = tokenizer.encode(text, allowed_special={'<|endoftext|>'})
@@ -314,3 +318,11 @@ def save_list_data_txt(data, file_name, dic_name="result_data" ):
     with open(file_path, "w", encoding="utf-8") as f:
         for value in data:
             f.write(f"{value}\n")
+
+def replace_linear_with_lora(model, rank, alpha):
+    for name, module in model.named_children():
+        if isinstance(module, nn.Linear):
+            setattr(model, name, LinearLora(module, rank, alpha))
+        else:
+            # Recursively replace all linear layers with lora layers
+            replace_linear_with_lora(module, rank, alpha)
