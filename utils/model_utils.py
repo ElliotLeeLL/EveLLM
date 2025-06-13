@@ -285,8 +285,8 @@ def train_classifier_simple(
             optimizer.step()
             examples_num += input_batch.shape[0]
             global_step += 1
-
             if global_step % eval_freq == 0:
+                torch.cuda.empty_cache()
                 train_loss, val_loss = evaluate_model(
                     model, train_loader, val_loader, device,eval_iter
                 )
@@ -297,6 +297,7 @@ def train_classifier_simple(
                     f"Train loss {train_loss:.3f}, "
                     f"Val loss {val_loss:.3f}"
                 )
+            torch.cuda.empty_cache()
 
         train_accuracy = calc_accuracy_loader(model=model, data_loader=train_loader, device=device, num_batches=eval_iter)
         val_accuracy = calc_accuracy_loader(model=model, data_loader=val_loader, device=device, num_batches=eval_iter)

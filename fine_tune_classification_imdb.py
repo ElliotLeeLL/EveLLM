@@ -16,14 +16,15 @@ from dataset.eve_dataset import SpamDataset, IMDBDataset
 if __name__ == "__main__":
     # Create a model with config
     device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
-    model_name = "eve-llm-355M"
+    model_name = "eve-llm-124M"
     config = model_configs[model_name]
+    torch.manual_seed(123)
     model = EveLLMModel(config)
     model.eval()
 
     # Load weight into the model
     settings, params = download_and_load_gpt2(
-        model_size="355M", models_dir="gpt2"
+        model_size="124M", models_dir="gpt2"
     )
     load_weights_into_evellm_gpt(model, params)
 
@@ -34,13 +35,13 @@ if __name__ == "__main__":
     )
     model.to(device)
 
-    # Froze parameters for all layers except the last transformer block and the output layer
-    for param in model.parameters():
-        param.requires_grad = False
-    for param in model.transformer_blocks[-1].parameters():
-        param.requires_grad = True
-    for param in model.final_norm.parameters():
-        param.requires_grad = True
+    # # Froze parameters for all layers except the last transformer block and the output layer
+    # for param in model.parameters():
+    #     param.requires_grad = False
+    # for param in model.transformer_blocks[-1].parameters():
+    #     param.requires_grad = True
+    # for param in model.final_norm.parameters():
+    #     param.requires_grad = True
     tokenizer = tiktoken.get_encoding("gpt2")
 
     extracted_path = "aclImdb_data"
@@ -63,7 +64,7 @@ if __name__ == "__main__":
     )
 
     num_workers = 0
-    batch_size = 8
+    batch_size = 4
 
     train_loader = DataLoader(
         dataset=train_dataset,
@@ -75,23 +76,22 @@ if __name__ == "__main__":
     val_loader = DataLoader(
         dataset=val_dataset,
         batch_size=batch_size,
-        shuffle=True,
+        shuffle=False,
         num_workers=num_workers,
         drop_last=True
     )
     test_loader = DataLoader(
         dataset=test_dataset,
         batch_size=batch_size,
-        shuffle=True,
+        shuffle=False,
         num_workers=num_workers,
         drop_last=True
     )
 
     # Train the model for classification tasks
     start_time = time.time()
-    torch.manual_seed(43)
     optimizer = torch.optim.AdamW(model.parameters(), lr=5e-5, weight_decay=0.1)
-    num_epochs = 5
+    num_epochs = 1
     train_losses, val_losses, train_accuracies, val_accuracies, examples_num = train_classifier_simple(
         model=model,
         train_loader=train_loader,
@@ -106,13 +106,24 @@ if __name__ == "__main__":
     execution_time_minutes = (end_time - start_time) / 60
     print(f"Training completed in {execution_time_minutes:.2f} minutes.")
 
+    result_file_name_base = "imdb_review_classifier"
+
+    save_list_data_txt(train_losses, f"{result_file_name_base}_train_losses_{datetime.now().strftime('%Y%m%d%H%M')}.txt")
+    save_list_data_txt(train_accuracies, f"{result_file_name_base}_train_accuracies_{datetime.now().strftime('%Y%m%d%H%M')}.txt")
+
+    torch.save(model.state_dict(), Path("result_models") / f"imdb_review_classifier_{datetime.now().strftime('%Y%m%d%H%M')}.pth")
+    # model_state_dict = torch.load("review_classifier.pth, map_location=device")
+    # model.load_state_dict(model_state_dict)
+
     epochs_tensor = torch.linspace(0, num_epochs, len(train_losses))
     examples_tensor = torch.linspace(0, examples_num, len(train_losses))
+
     plot_values(
         epochs_tensor,
         examples_tensor,
         train_losses,
         val_losses,
+        image_name=f"{result_file_name_base}_train_losses",
     )
 
     epochs_tensor = torch.linspace(0, num_epochs, len(train_accuracies))
@@ -122,11 +133,9 @@ if __name__ == "__main__":
         examples_tensor,
         train_accuracies,
         val_accuracies,
+        image_name=f"{result_file_name_base}_train_accuracy",
         label="accuracy",
     )
-
-    save_list_data_txt(train_losses, f"train_losses_{datetime.now().strftime('%Y%m%d%H%M')}.txt")
-    save_list_data_txt(train_accuracies, f"train_accuracies_{datetime.now().strftime('%Y%m%d%H%M')}.txt")
 
     train_accuracy = calc_accuracy_loader(train_loader, model, device)
     val_accuracy = calc_accuracy_loader(val_loader, model, device)
@@ -134,7 +143,3 @@ if __name__ == "__main__":
     print(f"Training accuracy: {train_accuracy * 100:.2f}%")
     print(f"Validation accuracy: {val_accuracy * 100:.2f}%")
     print(f"Test accuracy: {test_accuracy * 100:.2f}%")
-
-    torch.save(model.state_dict(), Path("result_models") / f"review_classifier_{datetime.now().strftime('%Y%m%d%H%M')}.pth")
-    # model_state_dict = torch.load("review_classifier.pth, map_location=device")
-    # model.load_state_dict(model_state_dict)

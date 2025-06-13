@@ -5,7 +5,7 @@ from pathlib import Path
 
 
 def plot_values(
-        epochs_seen, examples_num, train_values, val_values,
+        epochs_seen, examples_num, train_values, val_values, image_name=None,
         label="loss"
 ):
     fig, ax1 = plt.subplots(figsize=(5, 3))
@@ -21,5 +21,8 @@ def plot_values(
     ax2.set_xlabel("Example seen")
 
     fig.tight_layout()
-    plt.savefig(Path("result_diagrams") / f"{label}-plot-{datetime.now().strftime('%Y%m%d%H%M')}.pdf")
+    if image_name is not None:
+        plt.savefig(Path("result_diagrams") / f"{image_name}_{datetime.now().strftime('%Y%m%d%H%M')}.pdf")
+    else:
+        plt.savefig(Path("result_diagrams") / f"{label}_plot_{datetime.now().strftime('%Y%m%d%H%M')}.pdf")
     plt.show()
