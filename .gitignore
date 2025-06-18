@@ -179,6 +179,7 @@ cython_debug/
 /result_diagrams
 /result_models
 /result_data
+/aclImdb_data
 
 /sms_spam_collection
 
