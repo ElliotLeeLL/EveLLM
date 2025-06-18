@@ -44,7 +44,7 @@ if __name__ == "__main__":
     #     param.requires_grad = True
     # for param in model.final_norm.parameters():
     #     param.requires_grad = True
-    replace_linear_with_lora(model, rank=16, alpha=16)
+    replace_linear_with_lora(model, rank=32, alpha=16)
     total_params = sum(p.numel() for p in model.parameters() if p.requires_grad)
     print(f"Total trainable parameters after applying lora: {total_params:,}")
     model.to(device)

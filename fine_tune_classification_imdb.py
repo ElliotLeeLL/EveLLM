@@ -91,7 +91,7 @@ if __name__ == "__main__":
     # Train the model for classification tasks
     start_time = time.time()
     optimizer = torch.optim.AdamW(model.parameters(), lr=5e-5, weight_decay=0.1)
-    num_epochs = 1
+    num_epochs = 3
     train_losses, val_losses, train_accuracies, val_accuracies, examples_num = train_classifier_simple(
         model=model,
         train_loader=train_loader,
