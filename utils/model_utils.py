@@ -371,3 +371,10 @@ def save_model(model, config):
     dic_name = Path("result_models")
     file_name = Path(f"{config['model_name']}_cl_{config['context_length']}_ed_{config['emb_dim']}_{datetime.now().strftime('%Y%m%d%H%M')}.pth")
     torch.save(model.state_dict(), dic_name / file_name)
+
+def precompute_for_rope_params(head_dim, theta_base=10_000, context_length=4096):
+    return
+
+def compute_rope(keys, cos, sin):
+    return
+
