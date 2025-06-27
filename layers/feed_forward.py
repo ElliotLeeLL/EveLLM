@@ -16,7 +16,7 @@ class FeedForward(nn.Module):
     def forward(self, x):
         return self.layers(x)
 
-class GateFeedForward(nn.Module):
+class GatedFeedForward(nn.Module):
     def __init__(self, config):
         super().__init__()
         self.fc1 = nn.Linear(config["emb_dim"], config["hidden_dim"], dtype=config["dtype"], bias=False)

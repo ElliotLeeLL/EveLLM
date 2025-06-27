@@ -1,7 +1,7 @@
 import torch
 import torch.nn as nn
 
-from layers.feed_forward import FeedForward
+from layers.feed_forward import FeedForward, GatedFeedForward
 from layers.layer_norm import LayerNorm, RMSNorm
 from attention.multi_head_attention import MultiHeadAttention
 
@@ -47,7 +47,7 @@ class TransformerBlock(nn.Module):
             num_heads=config["n_heads"],
             qkv_bias=config["qkv_bias"],
         )
-        self.ff = FeedForward(config)
+        self.ff = GatedFeedForward(config)
         self.norm1 = RMSNorm(config["emb_dim"])
         self.norm2 = RMSNorm(config["emb_dim"])
 
