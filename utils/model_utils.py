@@ -372,10 +372,28 @@ def save_model(model, config):
     file_name = Path(f"{config['model_name']}_cl_{config['context_length']}_ed_{config['emb_dim']}_{datetime.now().strftime('%Y%m%d%H%M')}.pth")
     torch.save(model.state_dict(), dic_name / file_name)
 
-def precompute_for_rope_params(head_dim, theta_base=10_000, context_length=4096):
+def precompute_for_rope_params(head_dim, theta_base=10_000, context_length=4096, freq_config=None):
     assert head_dim % 2 == 0, "Embedding dimension must be even"
 
     inv_freq = 1.0 / (theta_base ** (torch.arange(0, head_dim, 2)[:head_dim // 2].float() / head_dim))
+
+    if freq_config is None:
+        low_freq_wavelen = freq_config["original_context_length"] / freq_config["low_freq_factor"]
+        high_freq_wavelen = freq_config["original_context_length"] / freq_config["high_freq_factor"]
+        wavelen = 2 * torch.pi / inv_freq
+        inv_freq_llama = torch.where(
+            wavelen > low_freq_wavelen, inv_freq / freq_config["factor"], inv_freq
+        )
+        smooth_factor = (freq_config["original_context_length"] / wavelen - freq_config["low_freq_factor"]) / (
+            freq_config["high_freq_factor"] - freq_config["low_freq_factor"]
+        )
+        smoothed_inv_freq = (
+            (1 - smooth_factor) * (inv_freq / freq_config["factor"]) + smooth_factor * inv_freq
+        )
+        is_medium_freq = (wavelen <= low_freq_wavelen) & (wavelen >= high_freq_wavelen)
+        inv_freq_llama = torch.where(is_medium_freq, smoothed_inv_freq, inv_freq_llama)
+        inv_freq = inv_freq_llama
+
     positions = torch.arange(context_length)
     angles = positions[:, None] * inv_freq[None, :]
     angles = torch.cat([angles, angles], dim=1)
