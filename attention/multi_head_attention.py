@@ -129,7 +129,7 @@ from utils.model_utils import precompute_for_rope_params, compute_rope
 #         return context_vec
 
 # Multi-head attention for llama3
-class MultiHeadAttention(nn.Module):
+class GroupedQueryAttention(nn.Module):
     def __init__(self, d_in, d_out, num_heads, num_kv_groups, dtype=None):
         super().__init__()
         assert d_out % num_heads == 0, "d_out must be divisible by num_heads"
