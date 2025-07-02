@@ -6,7 +6,7 @@ from transformers import AutoTokenizer
 from configuration import model_configs_llama
 
 
-configuration = model_configs_llama["LLAMA32_CONFIG_1B"]
+configuration = model_configs_llama["eve-llm-llama-1B"]
 login(configuration["HF_ACCESS_TOKEN"])
 
 tokenizer_file_path = hf_hub_download(

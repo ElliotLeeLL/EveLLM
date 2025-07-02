@@ -10,7 +10,7 @@ import time
 from functools import partial
 from tqdm import tqdm
 
-from configuration import model_configs
+from configuration import model_configs_llama
 from model import EveLLMModel
 from utils.model_utils import *
 from utils.diagram_utils import *
@@ -23,8 +23,8 @@ if __name__ == "__main__":
     # Create the model with a config
     device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
     torch.manual_seed(43)
-    model_name = "eve-llm-355M"
-    config = model_configs[model_name]
+    model_name = "eve-llm-llama-1B"
+    config = model_configs_llama[model_name]
     model = EveLLMModel(config)
     model.eval()
 
@@ -32,7 +32,7 @@ if __name__ == "__main__":
     settings, params = download_and_load_gpt2(
         model_size="355M", models_dir="gpt2"
     )
-    load_weights_into_eve_llm_gpt(model, params)
+    load_weights_into_eve_llm_llama(model, config, params)
     model.to(device)
 
     # Froze parameters for all layers except the last transformer block and the output layer
