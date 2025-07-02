@@ -159,6 +159,7 @@ def assign(left, right, tensor_name="unknown"):
     else:
         return torch.nn.Parameter(torch.tensor(right))
 
+# TODO:
 def load_weights_into_eve_llm_llama(model, param_config, params):
     return
 
