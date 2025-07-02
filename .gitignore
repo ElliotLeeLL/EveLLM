@@ -180,6 +180,7 @@ cython_debug/
 /result_models
 /result_data
 /aclImdb_data
+/Llama-3.2-1B
 
 /sms_spam_collection
 
