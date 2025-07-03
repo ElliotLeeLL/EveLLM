@@ -159,9 +159,75 @@ def assign(left, right, tensor_name="unknown"):
     else:
         return torch.nn.Parameter(torch.tensor(right))
 
-# TODO:
 def load_weights_into_eve_llm_llama(model, param_config, params):
-    return
+    model.tok_emb.weight = assign(model.tok_emb.weight, params["model.embed_tokens.weight"], "model.embed_tokens.weight")
+
+    for l in range(params["model.layers"]):
+        model.transformer_blocks[l].attention_layer.W_query.weight = assign(
+            model.transformer_blocks[l].attention_layer.W_query.weight,
+            params[f"model.layers.{l}.self_attn.q_proj.weight"],
+            f"model.layers.{l}.self_attn.q_proj.weight",
+        )
+        model.transformer_blocks[l].attention_layer.W_key.weight = assign(
+            model.transformer_blocks[l].attention_layer.W_key.weight,
+            params[f"model.layers.{l}.self_attn.k_proj.weight"],
+            f"model.layers.{l}.self_attn.k_proj.weight",
+        )
+        model.transformer_blocks[l].attention_layer.W_value.weight = assign(
+            model.transformer_blocks[l].attention_layer.W_value.weight,
+            params[f"model.layers.{l}.self_attn.v_proj.weight"],
+            f"model.layers.{l}.self_attn.v_proj.weight",
+        )
+        model.transformer_blocks[l].attention_layer.output.weight = assign(
+            model.transformer_blocks[l].attention_layer.output.weight,
+            params[f"model.layers.{l}.self_attn.o_proj.weight"],
+            f"model.layers.{l}.self_attn.o_proj.weight",
+        )
+        model.transformer_blocks[l].norm1.weight = assign(
+            model.transformer_blocks[l].norm1.weight,
+            params[f"model.layers.{l}.input_layernorm.weight"],
+            f"model.layers.{l}.input_layernorm.weight",
+        )
+
+        model.transformer_blocks[l].ff.fc1.weight = assign(
+            model.transformer_blocks[l].ff.fc1.weight,
+            params[f"model.layers.{l}.mlp.gate_proj.weight"],
+            f"model.layers.{l}.mlp.gate_proj.weight",
+        )
+        model.transformer_blocks[l].ff.fc2.weight = assign(
+            model.transformer_blocks[l].ff.fc2.weight,
+            params[f"model.layers.{l}.mlp.up_proj.weight"],
+            f"model.layers.{l}.mlp.up_proj.weight",
+        )
+        model.transformer_blocks[l].ff.fc3.weight = assign(
+            model.transformer_blocks[l].ff.fc3.weight,
+            params[f"model.layers.{l}.mlp.down_proj.weight"],
+            f"model.layers.{l}.mlp.down_proj.weight",
+        )
+        model.transformer_blocks[l].norm2.weight = assign(
+            model.transformer_blocks[l].norm2.weight,
+            params[f"model.layers.{l}.post_attention_layernorm.weight"],
+            f"model.layers.{l}.post_attention_layernorm.weight",
+        )
+
+    model.final_norm.weight = assign(
+        model.final_norm.weight,
+        params[f"model.norm.weight"],
+        "model.norm.weight",
+    )
+    if "lm_head.weight" in params.keys():
+        model.out_head.weight = assign(
+            model.out_head.weight,
+            params[f"lm_head.weight"],
+            "lm_head.weight",
+        )
+    else:
+        model.out_head.weight = assign(
+            model.out_head.weight,
+            params[f"model.embed_tokens.weight"],
+            "model.embed_tokens.weight",
+        )
+        print("Model uses weight tying.")
 
 def format_input_alpaca(entry):
     instruction_text = (
@@ -292,7 +358,7 @@ def precompute_for_rope_params(head_dim, theta_base=10_000, context_length=4096,
 
     inv_freq = 1.0 / (theta_base ** (torch.arange(0, head_dim, 2)[:head_dim // 2].float() / head_dim))
 
-    if freq_config is None:
+    if freq_config is not None:
         low_freq_wavelen = freq_config["original_context_length"] / freq_config["low_freq_factor"]
         high_freq_wavelen = freq_config["original_context_length"] / freq_config["high_freq_factor"]
         wavelen = 2 * torch.pi / inv_freq
