@@ -160,9 +160,12 @@ def assign(left, right, tensor_name="unknown"):
         return torch.nn.Parameter(torch.tensor(right))
 
 def load_weights_into_eve_llm_llama(model, param_config, params):
-    model.tok_emb.weight = assign(model.tok_emb.weight, params["model.embed_tokens.weight"], "model.embed_tokens.weight")
+    model.token_embedding.weight = assign(model.token_embedding.weight, params["model.embed_tokens.weight"], "model.embed_tokens.weight")
+    num_layers = sum(
+        1 for k in params.keys() if k.startswith("model.layers.") and k.endswith(".input_layernorm.weight")
+    )
 
-    for l in range(params["model.layers"]):
+    for l in range(num_layers):
         model.transformer_blocks[l].attention_layer.W_query.weight = assign(
             model.transformer_blocks[l].attention_layer.W_query.weight,
             params[f"model.layers.{l}.self_attn.q_proj.weight"],

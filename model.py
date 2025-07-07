@@ -81,7 +81,7 @@ class EveLLMModel(nn.Module):
             dtype=config["dtype"]
         )
         cos, sin = precompute_for_rope_params(
-            head_dim=config["emb_dim"] // config["n_head"],
+            head_dim=config["emb_dim"] // config["n_heads"],
             theta_base=config["rope_base"],
             context_length=config["context_length"],
             freq_config=config["rope_freq"],

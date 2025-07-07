@@ -3,7 +3,7 @@ import torch.nn as nn
 
 from layers.feed_forward import FeedForward, GatedFeedForward
 from layers.layer_norm import LayerNorm, RMSNorm
-from attention.multi_head_attention import MultiHeadAttention, GroupedQueryAttention
+from attention.multi_head_attention import GroupedQueryAttention
 
 
 # class TransformerBlock(nn.Module):

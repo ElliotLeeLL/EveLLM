@@ -37,10 +37,10 @@ class Tokenizer:
         )
 
     def encode(self, text, bos=False, eos=False):
-        ids = ([self.special["<|begin_of_text|>"]] if not bos else []) + self.model.enccode(text)
+        ids = ([self.special["<|begin_of_text|>"]] if not bos else []) + self.model.encode(text)
         if eos:
             ids.append(self.special["<|end_of_text|>"])
         return ids
 
     def deccode(self, ids):
-        return self.model.deccode(ids)
+        return self.model.decode(ids)
