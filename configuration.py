@@ -55,6 +55,7 @@ model_configs = {
 
 model_configs_llama = {
     "eve-llm-llama-1B":{
+        "model_name": "eve_llm_llama-1B",
         "vocab_size": 128_256,      # Vocabulary size
         "context_length": 131_072,  # Context length
         "emb_dim": 2048,            # NEW: Half the embedding dimension

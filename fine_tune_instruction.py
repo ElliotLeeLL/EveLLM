@@ -67,9 +67,9 @@ if __name__ == "__main__":
     test_data = data[train_portion:train_portion + test_portion]
 
     # # Test code
-    # train_data = train_data[:85]
-    # val_data = val_data[:5]
-    # test_data = test_data[:10]
+    train_data = train_data[:85]
+    val_data = val_data[:5]
+    test_data = test_data[:10]
 
     num_workers = 0
     batch_size = 4
@@ -124,7 +124,7 @@ if __name__ == "__main__":
     num_epochs = 2
 
     train_losses, val_losses, tokens_seen = train_model_simple(
-        model, train_loader, val_loader, optimizer, device,
+        model, train_loader, val_loader, optimizer, device, config=config,
         num_epochs=num_epochs, eval_freq=5, eval_iter=5,
         start_context=format_input_alpaca(val_data[0]), tokenizer=tokenizer
     )

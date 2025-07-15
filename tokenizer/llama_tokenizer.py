@@ -42,5 +42,5 @@ class Tokenizer:
             ids.append(self.special["<|end_of_text|>"])
         return ids
 
-    def deccode(self, ids):
+    def decode(self, ids):
         return self.model.decode(ids)

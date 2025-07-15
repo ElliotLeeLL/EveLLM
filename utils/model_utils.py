@@ -6,7 +6,7 @@ import tiktoken
 from pathlib import Path
 
 def text_to_token_ids(text, tokenizer):
-    encoded = tokenizer.encode(text, allowed_special={'<|endoftext|>'})
+    encoded = tokenizer.encode(text)
     encoded_tensor = torch.tensor(encoded).unsqueeze(0)
     return encoded_tensor
 
@@ -100,11 +100,11 @@ def generate_and_print_sample(
     model.train()
 
 def generate_and_print_top_k(
-    model, tokenizer, device, start_context,
-    temperature=1.0, top_k=None, eos_id=None
+    model, tokenizer, device, start_context, config,
+    temperature=1.0, top_k=None, eos_id=None,
 ):
     model.eval()
-    context_size = model.position_embedding.weight.shape[0]
+    context_size = config["context_length"]
     encoded = text_to_token_ids(start_context, tokenizer).to(device)
     with torch.no_grad():
         token_ids = generate_top_k(
@@ -259,6 +259,7 @@ def train_model_simple(
         val_loader,
         optimizer,
         device,
+        config,
         num_epochs,
         eval_freq,
         eval_iter,
@@ -294,7 +295,7 @@ def train_model_simple(
             # Clean the cache at the end of each batch
             torch.cuda.empty_cache()
         generate_and_print_top_k(
-            model, tokenizer, device, start_context
+            model, tokenizer, device, start_context, config=config
         )
         # generate_and_print_sample(
         #     model, tokenizer, device, start_context
