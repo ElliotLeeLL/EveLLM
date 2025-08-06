@@ -12,9 +12,15 @@ The **EveLLM Classifier** is a fine-tuned large language model based on GPT2-355
 
 The model begins with two embedding layers, followed by 24 transformer blocks. The output from these components is passed through a final layer of normalization and a linear output layer. Notably, the linear output layer produces only 2 output features, as the classification task involves binary sentiment prediction (positive or negative). 
 
-During fine-tuning, only the final transformer block, the final layer norm, and the linear output layer are trainable — all other layers are frozen. This selective training strategy helps preserve the knowledge learned during pretraining while adapting the model efficiently to the classification task. 
+During the fine-tuning, only the final transformer block, the final layer norm, and the linear output layer are trainable — all other layers are frozen. This selective training strategy helps preserve the knowledge learned during pretraining while adapting the model efficiently to the classification task. 
 
 ## EveLLM Chat
 
-The EveLLM Chat is fine-tuned from GPT2-124M, and its architecture is similar to the architecture of the EveLLM Classifier, except that the output layer has 50257 output features, which is the maximal vocabulary size of the GPT2 model.
+EveLLM Chat is fine-tuned from GPT-2 (124M) and shares a similar architecture with EveLLM Classifier, with a key difference in the output layer: EveLLM Chat produces 50257 output features, corresponding to the full vocabulary size of the GPT-2 model. The architecture is illustrated in Figure 2:
 
+<p align="center">
+  <img src="images/iVBORw0KGgoAAAANSUhEUgAAAroAAA.png" alt="Output" width="300"/><br/>
+  <em>Figure 1: The Architecture of The EveLLM Classifier</em>
+</p>
+
+Unlike EveLLM Classifier, EveLLM Chat does not freeze any layers during training and consists of only 12 transformer blocks, aligning with the original GPT-2 (124M) configuration.
