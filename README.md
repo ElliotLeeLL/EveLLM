@@ -20,7 +20,8 @@ EveLLM Chat is fine-tuned from GPT-2 (124M) and shares a similar architecture wi
 
 <p align="center">
   <img src="images/iVBORw0KGgoAAAANSUhEUgAAAroAAA.png" alt="Output" width="300"/><br/>
-  <em>Figure 1: The Architecture of The EveLLM Chat</em>
+  <em>Figure 2: The Architecture of The EveLLM Chat</em>
 </p>
+
 
 Unlike EveLLM Classifier, EveLLM Chat does not freeze any layers during training and consists of only 12 transformer blocks, aligning with the original GPT-2 (124M) configuration.
