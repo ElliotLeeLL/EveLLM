@@ -63,7 +63,7 @@ def generate_model_scores(
     return scores, test_data
 
 if __name__ == "__main__":
-    result_data_path = Path("result_data") / "instruction_data_with_response.json"
+    result_data_path = Path("result_data") / "instruction_data_with_response_202508111754.json"
     with open(result_data_path, "r") as file:
         test_data = json.load(file)
     scores, result_data_with_score  = generate_model_scores(test_data, "model_response")
