@@ -67,9 +67,9 @@ if __name__ == "__main__":
     test_data = data[train_portion:train_portion + test_portion]
 
     # # Test code
-    train_data = train_data[:85]
-    val_data = val_data[:5]
-    test_data = test_data[:10]
+    # train_data = train_data[:85]
+    # val_data = val_data[:5]
+    # test_data = test_data[:10]
 
     num_workers = 0
     batch_size = 4
@@ -157,7 +157,7 @@ if __name__ == "__main__":
         )
         generated_text = token_ids_to_text(token_ids, tokenizer)
         response_text = (
-            generated_text[len(input_text):]
+            generated_text[len("<|begin_of_text|>")+len(input_text):]
             .replace("### Response:", "")
             .strip()
         )
