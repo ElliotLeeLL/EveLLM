@@ -134,6 +134,9 @@ if __name__ == "__main__":
     print(f"Training completed in {execution_time_minutes:.2f} minutes.")
 
     # Plot diagram for losses
+    training_loss_file_path = Path("result_data") / f"eve_llm_llama_instruction_loss_{datetime.now().strftime('%Y%m%d%H%M')}.json"
+    with open(training_loss_file_path, "w") as file:
+        json.dump(training_loss_file_path, file, indent=4)
     epochs_tensor = torch.linspace(0, num_epochs, len(train_losses))
     examples_tensor = torch.linspace(0, tokens_seen[-1], len(train_losses))
     plot_values(
