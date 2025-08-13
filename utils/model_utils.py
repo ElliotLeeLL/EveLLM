@@ -402,6 +402,19 @@ def compute_rope(x, cos, sin):
 
     return x_rotated.to(dtype=x.dtype)
 
+def compute_rope_params(head_dim, theta_base=10_000, context_length=4096, dtype=torch.float32):
+    assert head_dim % 2 == 0, "Embedding dimension must be even"
+
+    inv_freq = 1.0 / (theta_base ** (torch.arange(0, head_dim, 2, dtype=dtype)[:head_dim // 2].float() / head_dim))
+
+    positions = torch.arange(context_length, dtype=dtype)
+
+    angles = positions[:, None] * inv_freq[None, :]
+
+    cos, sin = torch.cos(angles), torch.sin(angles)
+
+    return cos, sin
+
 def model_memory_size(model, input_dtype=torch.float32):
     total_params = 0
     total_grads = 0
