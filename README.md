@@ -1,5 +1,9 @@
 # EveLLM
-EveLLM is a family of large language models (LLMs) derived from AdamLLM (see the [repository here](https://github.com/ElliotLeeLL/AdamLLM)). We are currently transitioning the EveLLM architecture from GPT to LLaMA. The family includes two models: **EveLLM Classifier**, optimized for film review classification, and **EveLLM Chat**, designed for instruction-following tasks.
+EveLLM is a family of large language models (LLMs) derived from AdamLLM (see the [repository here](https://github.com/ElliotLeeLL/AdamLLM)). The family comprises three models:
+
+- **EveLLM Classifier** – optimized for film review classification.
+- **EveLLM Chat** – designed for instruction-following tasks.
+- **EveLLM Chat LLaMA** – an updated version of EveLLM Chat, built on the LLaMA 3.2 architecture instead of the original GPT architecture.
 
 ## EveLLM Classifier
 
@@ -25,3 +29,7 @@ EveLLM Chat is fine-tuned from GPT2-124M and shares a similar architecture with 
 
 
 Unlike EveLLM Classifier, EveLLM Chat does not freeze any layers during training and consists of only 12 transformer blocks, aligning with the original GPT2-124M configuration.
+
+## EveLLM Chat Llama
+
+EveLLM Chat LLaMA is an updated version of EveLLM Chat that adopts the LLaMA 3.2 architecture. Core modules of EveLLM Chat—such as layer normalization, multi-head attention transformer blocks, and absolute positional embeddings—were replaced with LLaMA 3.2 components, including RMS normalization, grouped-query attention blocks, and rotary positional embeddings (RoPE).
