@@ -1,8 +1,8 @@
 import torch
 import torch.nn as nn
 
-from layers.feed_forward import FeedForward, GatedFeedForward
-from layers.layer_norm import LayerNorm, RMSNorm
+from layers.feed_forward import GatedFeedForward
+from layers.layer_norm import RMSNormQwen
 from attention.multi_head_attention import GroupedQueryAttention
 
 
@@ -74,8 +74,8 @@ class TransformerBlock(nn.Module):
             dtype=config["dtype"],
         )
         self.ff = GatedFeedForward(config)
-        self.norm1 = RMSNorm(config["emb_dim"])
-        self.norm2 = RMSNorm(config["emb_dim"])
+        self.norm1 = RMSNormQwen(config["emb_dim"])
+        self.norm2 = RMSNormQwen(config["emb_dim"])
 
     def forward(self, x, mask=None, cos=None, sin=None):
         shotcut = x

@@ -1,8 +1,8 @@
 import torch
 import torch.nn as nn
 from attention.transformer_block import TransformerBlock
-from layers.layer_norm import LayerNorm, RMSNorm
-from utils.model_utils import precompute_for_rope_params
+from layers.layer_norm import RMSNormQwen
+from utils.model_utils import compute_rope_params
 
 
 # class EveLLMModel(nn.Module):
@@ -112,7 +112,7 @@ class EveLLMModel(nn.Module):
                 TransformerBlock(config) for _ in range(config["n_layers"])
             ]
         )
-        self.final_norm = RMSNorm(config["emb_dim"])
+        self.final_norm = RMSNormQwen(config["emb_dim"])
         self.out_head = nn.Linear(
             config["emb_dim"],
             config["vocab_size"],
