@@ -159,13 +159,10 @@ def assign(left, right, tensor_name="unknown"):
     else:
         return torch.nn.Parameter(torch.tensor(right))
 
-def load_weights_into_eve_llm_llama(model, param_config, params):
+def load_weights_into_eve_llm_qwen3(model, param_config, params):
     model.token_embedding.weight = assign(model.token_embedding.weight, params["model.embed_tokens.weight"], "model.embed_tokens.weight")
-    num_layers = sum(
-        1 for k in params.keys() if k.startswith("model.layers.") and k.endswith(".input_layernorm.weight")
-    )
 
-    for l in range(num_layers):
+    for l in range(param_config["n_layers"]):
         model.transformer_blocks[l].attention_layer.W_query.weight = assign(
             model.transformer_blocks[l].attention_layer.W_query.weight,
             params[f"model.layers.{l}.self_attn.q_proj.weight"],
@@ -186,6 +183,22 @@ def load_weights_into_eve_llm_llama(model, param_config, params):
             params[f"model.layers.{l}.self_attn.o_proj.weight"],
             f"model.layers.{l}.self_attn.o_proj.weight",
         )
+
+        # QK norms
+        if hasattr(model.transformer_blocks[l].attention_layer, "q_norm") and model.transformer_blocks[l].attention_layer.q_norm is not None:
+            model.transformer_blocks[l].attention_layer.q_norm.scale = assign(
+                model.transformer_blocks[l].attention_layer.q_norm.scale,
+                params[f"model.layers.{l}.self_attn.q_norm.weight"],
+                f"model.layers.{l}.self_attn.q_norm.weight",
+            )
+        if hasattr(model.transformer_blocks[l].attention_layer, "k_norm") and model.transformer_blocks[l].attention_layer.k_norm is not None:
+            model.transformer_blocks[l].attention_layer.k_norm.scale = assign(
+                model.transformer_blocks[l].attention_layer.k_norm.scale,
+                params[f"model.layers.{l}.self_attn.k_norm.weight"],
+                f"model.layers.{l}.self_attn.k_norm.weight",
+            )
+
+
         model.transformer_blocks[l].norm1.weight = assign(
             model.transformer_blocks[l].norm1.weight,
             params[f"model.layers.{l}.input_layernorm.weight"],
@@ -213,12 +226,12 @@ def load_weights_into_eve_llm_llama(model, param_config, params):
             f"model.layers.{l}.post_attention_layernorm.weight",
         )
 
-    model.final_norm.weight = assign(
-        model.final_norm.weight,
+    model.final_norm.scale = assign(
+        model.final_norm.scale,
         params[f"model.norm.weight"],
         "model.norm.weight",
     )
-    if "lm_head.weight" in params.keys():
+    if "lm_head.weight" in params:
         model.out_head.weight = assign(
             model.out_head.weight,
             params[f"lm_head.weight"],
