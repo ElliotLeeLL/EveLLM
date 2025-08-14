@@ -87,6 +87,7 @@ model_configs_qwen3 = {
         "n_kv_groups": 8,                # Key-Value groups for grouped-query attention
         "rope_base": 1_000_000.0,        # The base in RoPE's "theta"
         "dtype": torch.bfloat16,         # Lower-precision dtype to reduce memory usage
+        "model_name": "eve-llm-qwen3-0P6B",
     },
     "eve-llm-qwen3-1P7B": {
         "vocab_size": 151_936,
@@ -100,6 +101,7 @@ model_configs_qwen3 = {
         "n_kv_groups": 8,
         "rope_base": 1_000_000.0,
         "dtype": torch.bfloat16,
+        "model_name": "eve-llm-qwen3-1P7B",
     },
     "eve-llm-qwen3-4B": {
         "vocab_size": 151_936,
@@ -113,6 +115,7 @@ model_configs_qwen3 = {
         "n_kv_groups": 8,
         "rope_base": 1_000_000.0,
         "dtype": torch.bfloat16,
+        "model_name": "eve-llm-qwen3-4B",
     },
     "eve-llm-qwen3-8B": {
         "vocab_size": 151_936,
@@ -125,7 +128,8 @@ model_configs_qwen3 = {
         "qk_norm": True,
         "n_kv_groups": 8,
         "rope_base": 1_000_000.0,
-        "dtype": torch.bfloat16
+        "dtype": torch.bfloat16,
+        "model_name": "eve-llm-qwen3-8B",
     },
     "eve-llm-qwen3-14B": {
         "vocab_size": 151_936,
@@ -139,6 +143,7 @@ model_configs_qwen3 = {
         "n_kv_groups": 8,
         "rope_base": 1_000_000.0,
         "dtype": torch.bfloat16,
+        "model_name": "eve-llm-qwen3-14B",
     },
     "eve-llm-qwen3-32B": {
         "vocab_size": 151_936,
@@ -152,5 +157,6 @@ model_configs_qwen3 = {
         "n_kv_groups": 8,
         "rope_base": 1_000_000.0,
         "dtype": torch.bfloat16,
+        "model_name": "eve-llm-qwen3-32B",
     },
 }

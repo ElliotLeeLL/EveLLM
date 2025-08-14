@@ -1,5 +1,7 @@
 import torch
 import torch.nn as nn
+
+from layers.layer_norm import RMSNormQwen
 from utils.model_utils import compute_rope
 
 
@@ -12,7 +14,7 @@ class GroupedQueryAttention(nn.Module):
         self.group_size = num_heads // num_kv_groups
         self.num_kv_groups = num_kv_groups
 
-        if head_dim is not None:
+        if head_dim is None:
             assert d_in % num_heads == 0, "`d_in` must be divisible by `num_heads` if `head_dim` is not set"
             head_dim = d_in // num_heads
 
@@ -26,8 +28,8 @@ class GroupedQueryAttention(nn.Module):
         self.output = nn.Linear(self.d_out, d_in, bias=False, dtype=dtype)
 
         if qk_norm:
-            self.q_norm = nn.LayerNorm(head_dim, eps=1e-6)
-            self.k_norm = nn.LayerNorm(head_dim, eps=1e-6)
+            self.q_norm = RMSNormQwen(head_dim, eps=1e-6)
+            self.k_norm = RMSNormQwen(head_dim, eps=1e-6)
         else:
             self.q_norm = self.k_norm = None
 
