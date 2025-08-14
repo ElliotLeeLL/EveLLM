@@ -6,17 +6,14 @@ from transformers import AutoTokenizer
 from configuration import model_configs_llama
 
 
-configuration = model_configs_llama["eve-llm-llama-1B"]
-login(configuration["HF_ACCESS_TOKEN"])
-
 tokenizer_file_path = hf_hub_download(
-    repo_id="meta-llama/Llama-3.2-1B",
-    filename="original/tokenizer.model",
-    local_dir="Llama-3.2-1B",
+    repo_id="Qwen/Qwen3-0.6B",
+    filename="tokenizer.json",
+    local_dir="Qwen3-0.6B",
 )
 
 weights_file = hf_hub_download(
-    repo_id="meta-llama/Llama-3.2-1B",
+    repo_id="Qwen/Qwen3-0.6B",
     filename="model.safetensors",
-    local_dir="Llama-3.2-1B"
+    local_dir="Qwen3-0.6B"
 )
