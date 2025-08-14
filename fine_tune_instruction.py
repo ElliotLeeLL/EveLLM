@@ -11,9 +11,10 @@ from functools import partial
 from tqdm import tqdm
 from safetensors.torch import load_file
 
-from configuration import model_configs_llama
+from configuration import model_configs_qwen3
 from model import EveLLMModel
 from tokenizer.llama_tokenizer import Tokenizer
+from tokenizer.qwen_tokenizer import Qwen3Tokenizer
 from utils.model_utils import *
 from utils.diagram_utils import *
 from utils.gpt_download import download_and_load_gpt2
@@ -25,17 +26,17 @@ if __name__ == "__main__":
     # Create the model with a config
     device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
     torch.manual_seed(43)
-    model_name = "eve-llm-llama-1B"
-    config = model_configs_llama[model_name]
+    model_name = "eve-llm-qwen3-0P6B"
+    config = model_configs_qwen3[model_name]
     model = EveLLMModel(config)
     model.eval()
 
     # Load weight into the model
     combined_weights = {}
-    weights_path = Path("Llama-3.2-1B") / "model.safetensors"
+    weights_path = Path("Qwen3-0.6B") / "model.safetensors"
     current_weights = load_file(weights_path)
     combined_weights.update(current_weights)
-    load_weights_into_eve_llm_llama(model, config, combined_weights)
+    load_weights_into_eve_llm_qwen3(model, config, combined_weights)
     model.to(device)
 
     # Froze parameters for all layers except the last transformer block and the output layer
@@ -53,8 +54,8 @@ if __name__ == "__main__":
     #     outputs = model(inputs.to(device))
 
     # Prepare datasets
-    tokenizer_file_path = Path("Llama-3.2-1B") / "original" / "tokenizer.model"
-    tokenizer = Tokenizer(str(tokenizer_file_path))
+    tokenizer_file_path = Path("Qwen3-0.6B") / "tokenizer.json"
+    tokenizer = Qwen3Tokenizer(str(tokenizer_file_path))
     file_path = Path("instruction_data") / "instruction_data.json"
     url = "https://raw.githubusercontent.com/tatsu-lab/stanford_alpaca/main/alpaca_data.json"
     data = download_and_load_file(file_path, url)
@@ -67,9 +68,9 @@ if __name__ == "__main__":
     test_data = data[train_portion:train_portion + test_portion]
 
     # # Test code
-    # train_data = train_data[:85]
-    # val_data = val_data[:5]
-    # test_data = test_data[:10]
+    train_data = train_data[:85]
+    val_data = val_data[:5]
+    test_data = test_data[:10]
 
     num_workers = 0
     batch_size = 4
@@ -134,7 +135,7 @@ if __name__ == "__main__":
     print(f"Training completed in {execution_time_minutes:.2f} minutes.")
 
     # Plot diagram for losses
-    training_loss_file_path = Path("result_data") / f"eve_llm_llama_instruction_loss_{datetime.now().strftime('%Y%m%d%H%M')}.json"
+    training_loss_file_path = Path("result_data") / f"eve_llm_qwen3_instruction_loss_{datetime.now().strftime('%Y%m%d%H%M')}.json"
     with open(training_loss_file_path, "w") as file:
         json.dump(training_loss_file_path, file, indent=4)
     epochs_tensor = torch.linspace(0, num_epochs, len(train_losses))
@@ -166,7 +167,7 @@ if __name__ == "__main__":
         )
         test_data[i]["model_response"] = response_text
 
-    result_data_path = Path("result_data") / f"instruction_data_with_response_{datetime.now().strftime('%Y%m%d%H%M')}.json"
+    result_data_path = Path("result_data") / f"instruction_data_with_response_{model_name}_{datetime.now().strftime('%Y%m%d%H%M')}.json"
     with open(result_data_path, "w") as file:
         json.dump(test_data, file, indent=4)
 

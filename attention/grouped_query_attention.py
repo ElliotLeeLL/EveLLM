@@ -8,9 +8,9 @@ class GroupedQueryAttention(nn.Module):
         super().__init__()
         assert num_heads % num_kv_groups == 0, "num_heads must be divisible by num_kv_groups"
 
-        self.d_in = d_in
         self.num_heads = num_heads
         self.group_size = num_heads // num_kv_groups
+        self.num_kv_groups = num_kv_groups
 
         if head_dim is not None:
             assert d_in % num_heads == 0, "`d_in` must be divisible by `num_heads` if `head_dim` is not set"
@@ -22,9 +22,8 @@ class GroupedQueryAttention(nn.Module):
         # self.W_value = nn.Linear(d_in, d_out, bias=False, dtype=dtype)
         self.W_key = nn.Linear(d_in, num_kv_groups * self.head_dim, bias=False, dtype=dtype)
         self.W_value = nn.Linear(d_in, num_kv_groups * self.head_dim, bias=False, dtype=dtype)
-        self.num_kv_groups = num_kv_groups
         self.W_query = nn.Linear(d_in, self.d_out, bias=False, dtype=dtype)
-        self.output = nn.Linear(self.d_out, self.d_out, bias=False, dtype=dtype)
+        self.output = nn.Linear(self.d_out, d_in, bias=False, dtype=dtype)
 
         if qk_norm:
             self.q_norm = nn.LayerNorm(head_dim, eps=1e-6)
@@ -39,9 +38,6 @@ class GroupedQueryAttention(nn.Module):
         values = self.W_value(x)
         queries = self.W_query(x)
         queries = queries.view(batch_size, num_tokens, self.num_heads, self.head_dim)
-
-        # keys = keys.view(batch_size, num_tokens, self.num_heads, self.head_dim)
-        # values = values.view(batch_size, num_tokens, self.num_heads, self.head_dim)
         keys = keys.view(batch_size, num_tokens, self.num_kv_groups, self.head_dim)
         values = values.view(batch_size, num_tokens, self.num_kv_groups, self.head_dim)
 
@@ -69,7 +65,6 @@ class GroupedQueryAttention(nn.Module):
             attn_scores / keys.shape[-1] ** 0.5,
             dim=-1
         )
-
 
         context = (attn_weights @ values).transpose(1, 2).reshape(batch_size, num_tokens, self.d_out)
 

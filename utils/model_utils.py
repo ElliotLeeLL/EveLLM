@@ -161,8 +161,8 @@ def assign(left, right, tensor_name="unknown"):
 
 def load_weights_into_eve_llm_qwen3(model, param_config, params):
     model.token_embedding.weight = assign(model.token_embedding.weight, params["model.embed_tokens.weight"], "model.embed_tokens.weight")
-
     for l in range(param_config["n_layers"]):
+        attn = model.transformer_blocks[l].attention_layer
         model.transformer_blocks[l].attention_layer.W_query.weight = assign(
             model.transformer_blocks[l].attention_layer.W_query.weight,
             params[f"model.layers.{l}.self_attn.q_proj.weight"],
