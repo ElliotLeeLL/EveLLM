@@ -55,7 +55,11 @@ if __name__ == "__main__":
 
     # Prepare datasets
     tokenizer_file_path = Path("Qwen3-0.6B") / "tokenizer.json"
-    tokenizer = Qwen3Tokenizer(str(tokenizer_file_path))
+    tokenizer = Qwen3Tokenizer(
+        str(tokenizer_file_path),
+        add_generation_prompt=True,
+        add_thinking=True,
+    )
     file_path = Path("instruction_data") / "instruction_data.json"
     url = "https://raw.githubusercontent.com/tatsu-lab/stanford_alpaca/main/alpaca_data.json"
     data = download_and_load_file(file_path, url)
@@ -157,11 +161,13 @@ if __name__ == "__main__":
             idx=text_to_token_ids(input_text, tokenizer).to(device),
             max_new_tokens=256,
             context_size=config["context_length"],
-            eos_id=50256
+            eos_id=tokenizer.eos_token_id,
+            temperature=0.6,
+            top_k=20,
         )
         generated_text = token_ids_to_text(token_ids, tokenizer)
         response_text = (
-            generated_text[len("<|begin_of_text|>")+len(input_text):]
+            generated_text[len("<|im_start|>user\n")+len(input_text)+len("<|im_end|>\n"):]
             .replace("### Response:", "")
             .strip()
         )

@@ -110,7 +110,7 @@ class TransformerBlock(nn.Module):
         shotcut = x
         x = self.norm1(x)
         x = self.attention_layer(
-            x.to(torch.bfloat16), mask=mask, cos=cos, sin=sin
+            x, mask=mask, cos=cos, sin=sin
         )
         x = shotcut + x
 

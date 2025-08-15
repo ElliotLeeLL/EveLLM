@@ -308,7 +308,7 @@ def train_model_simple(
             # Clean the cache at the end of each batch
             torch.cuda.empty_cache()
         generate_and_print_top_k(
-            model, tokenizer, device, start_context, config=config
+            model, tokenizer, device, start_context, config=config, temperature=0.6
         )
         # generate_and_print_sample(
         #     model, tokenizer, device, start_context

@@ -1,38 +1,24 @@
-import os
 import re
 from pathlib import Path
 
-import tiktoken
-from tiktoken.load import load_tiktoken_bpe
 from tokenizers import Tokenizer
 
 
 class Qwen3Tokenizer:
     _SPECIALS = [
         "<|endoftext|>",
-        "<|im_start|>",
-        "<|im_end|>",
-        "<|object_ref_start|>",
-        "<|object_ref_end|>",
-        "<|box_start|>",
-        "<|box_end|>",
-        "<|quad_start|>",
-        "<|quad_end|>",
-        "<|vision_start|>",
-        "<|vision_end|>",
-        "<|vision_pad|>",
-        "<|image_pad|>",
-        "<|video_pad|>",
+        "<|im_start|>", "<|im_end|>",
+        "<|object_ref_start|>", "<|object_ref_end|>",
+        "<|box_start|>", "<|box_end|>",
+        "<|quad_start|>", "<|quad_end|>",
+        "<|vision_start|>", "<|vision_end|>",
+        "<|vision_pad|>", "<|image_pad|>", "<|video_pad|>",
     ]
     _SPLIT_RE = re.compile(r"(<\|[^>]+?\|>)")
-    def __init__(
-            self,
-            tokenizer_file_path="tokenizer.json",
-            repo_id=None,
-            apply_chat_template=True,
-            add_generation_prompt=False,
-            add_thinking=False
-    ):
+
+    def __init__(self, tokenizer_file_path="tokenizer.json", repo_id=None,
+                 apply_chat_template=True, add_generation_prompt=False, add_thinking=False):
+
         self.apply_chat_template = apply_chat_template
         self.add_generation_prompt = add_generation_prompt
         self.add_thinking = add_thinking
@@ -55,9 +41,9 @@ class Qwen3Tokenizer:
         if chat_wrapped is None:
             chat_wrapped = self.apply_chat_template
 
-        stripped_text = text.strip()
-        if stripped_text in self._special_to_id and "\n" not in stripped_text:
-            return [self._special_to_id[stripped_text]]
+        stripped = text.strip()
+        if stripped in self._special_to_id and "\n" not in stripped:
+            return [self._special_to_id[stripped]]
 
         if chat_wrapped:
             text = self._wrap_chat(text)
@@ -74,11 +60,11 @@ class Qwen3Tokenizer:
         return self._tok.decode(ids, skip_special_tokens=False)
 
     def _wrap_chat(self, user_msg):
-        s = f"<im_start>user\n{user_msg}<|im_end|>"
+        s = f"<|im_start|>user\n{user_msg}<|im_end|>\n"
         if self.add_generation_prompt:
             s += "<|im_start|>assistant"
             if self.add_thinking:
-                s+= "\n"
+                s += "\n"
             else:
                 s += "\n<think>\n\n</think>\n\n"
         return s

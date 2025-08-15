@@ -50,9 +50,9 @@ class GroupedQueryAttention(nn.Module):
         queries = queries.transpose(1, 2)
         values = values.transpose(1, 2)
 
-        if self.q_norm is not None:
+        if self.q_norm:
             queries = self.q_norm(queries)
-        if self.k_norm is not None:
+        if self.k_norm:
             keys = self.k_norm(keys)
 
         keys = compute_rope(keys, cos, sin)
