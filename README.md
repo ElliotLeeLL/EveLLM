@@ -32,4 +32,9 @@ Unlike EveLLM Classifier, EveLLM Chat does not freeze any layers during training
 
 ## EveLLM Chat Llama
 
-EveLLM Chat LLaMA is an updated version of EveLLM Chat that adopts the LLaMA 3.2 architecture. Core modules of EveLLM Chat—such as layer normalization, multi-head attention transformer blocks, and absolute positional embeddings—were replaced with LLaMA 3.2 components, including RMS normalization, grouped-query attention blocks, and rotary positional embeddings (RoPE).
+EveLLM Chat LLaMA is an updated version of EveLLM Chat that adopts the LLaMA 3.2 architecture. Core modules of EveLLM Chat—such as layer normalization, multi-head attention transformer blocks, and absolute positional embeddings—were replaced with LLaMA 3.2 components, including RMS normalization, grouped-query attention blocks, and rotary positional embeddings (RoPE). The architecture is illustrated in Figure 3:
+
+<p align="center">
+  <img src="images/iVBORw0KGgoAAAANSUhEUgAAAroBBB.png" alt="Output" width="300"/><br/>
+  <em>Figure 3: The Architecture of The EveLLM Chat Lllama</em>
+</p>
