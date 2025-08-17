@@ -20,11 +20,11 @@ class GroupedQueryAttention(nn.Module):
 
         self.head_dim = head_dim
         self.d_out = num_heads * head_dim
-        # self.W_key = nn.Linear(d_in, d_out, bias=False, dtype=dtype)
-        # self.W_value = nn.Linear(d_in, d_out, bias=False, dtype=dtype)
+
+        self.W_query = nn.Linear(d_in, self.d_out, bias=False, dtype=dtype)
         self.W_key = nn.Linear(d_in, num_kv_groups * self.head_dim, bias=False, dtype=dtype)
         self.W_value = nn.Linear(d_in, num_kv_groups * self.head_dim, bias=False, dtype=dtype)
-        self.W_query = nn.Linear(d_in, self.d_out, bias=False, dtype=dtype)
+
         self.output = nn.Linear(self.d_out, d_in, bias=False, dtype=dtype)
 
         if qk_norm:
@@ -34,37 +34,31 @@ class GroupedQueryAttention(nn.Module):
             self.q_norm = self.k_norm = None
 
     def forward(self, x, mask=None, cos=None, sin=None):
-        batch_size, num_tokens, d_in = x.shape
+        batch_size, num_tokens, _ = x.shape
 
+        queries = self.W_query(x)
         keys = self.W_key(x)
         values = self.W_value(x)
-        queries = self.W_query(x)
-        queries = queries.view(batch_size, num_tokens, self.num_heads, self.head_dim)
-        keys = keys.view(batch_size, num_tokens, self.num_kv_groups, self.head_dim)
-        values = values.view(batch_size, num_tokens, self.num_kv_groups, self.head_dim)
 
-        # Transpose maxtrixes
-        # from -> (batch_size, num_tokens, num_heads, head_dim)
-        # to -> (batch_size, num_heads, num_tokens, head_dim)
-        keys = keys.transpose(1, 2)
-        queries = queries.transpose(1, 2)
-        values = values.transpose(1, 2)
+        queries = queries.view(batch_size, num_tokens, self.num_heads, self.head_dim).transpose(1, 2)
+        keys = keys.view(batch_size, num_tokens, self.num_kv_groups, self.head_dim).transpose(1, 2)
+        values = values.view(batch_size, num_tokens, self.num_kv_groups, self.head_dim).transpose(1, 2)
 
         if self.q_norm:
             queries = self.q_norm(queries)
         if self.k_norm:
             keys = self.k_norm(keys)
 
-        keys = compute_rope(keys, cos, sin)
         queries = compute_rope(queries, cos, sin)
+        keys = compute_rope(keys, cos, sin)
 
         keys = keys.repeat_interleave(self.group_size, dim=1)
         values = values.repeat_interleave(self.group_size, dim=1)
 
         attn_scores = queries @ keys.transpose(2, 3)
-        attn_scores.masked_fill_(mask, -torch.inf)
+        attn_scores = attn_scores.masked_fill(mask, -torch.inf)
         attn_weights = torch.softmax(
-            attn_scores / keys.shape[-1] ** 0.5,
+            attn_scores / self.head_dim ** 0.5,
             dim=-1
         )
 

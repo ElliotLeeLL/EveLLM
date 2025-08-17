@@ -157,71 +157,72 @@ def assign(left, right, tensor_name="unknown"):
     if isinstance(right, torch.Tensor):
         return torch.nn.Parameter(right.clone().detach())
     else:
-        return torch.nn.Parameter(torch.tensor(right))
+        return torch.tensor(right)
 
 def load_weights_into_eve_llm_qwen3(model, param_config, params):
     model.token_embedding.weight = assign(model.token_embedding.weight, params["model.embed_tokens.weight"], "model.embed_tokens.weight")
     for l in range(param_config["n_layers"]):
-        attn = model.transformer_blocks[l].attention_layer
-        model.transformer_blocks[l].attention_layer.W_query.weight = assign(
-            model.transformer_blocks[l].attention_layer.W_query.weight,
+        block = model.transformer_blocks[l]
+        attn = block.attention_layer
+        attn.W_query.weight = assign(
+            attn.W_query.weight,
             params[f"model.layers.{l}.self_attn.q_proj.weight"],
             f"model.layers.{l}.self_attn.q_proj.weight",
         )
-        model.transformer_blocks[l].attention_layer.W_key.weight = assign(
-            model.transformer_blocks[l].attention_layer.W_key.weight,
+        attn.W_key.weight = assign(
+            attn.W_key.weight,
             params[f"model.layers.{l}.self_attn.k_proj.weight"],
             f"model.layers.{l}.self_attn.k_proj.weight",
         )
-        model.transformer_blocks[l].attention_layer.W_value.weight = assign(
-            model.transformer_blocks[l].attention_layer.W_value.weight,
+        attn.W_value.weight = assign(
+            attn.W_value.weight,
             params[f"model.layers.{l}.self_attn.v_proj.weight"],
             f"model.layers.{l}.self_attn.v_proj.weight",
         )
-        model.transformer_blocks[l].attention_layer.output.weight = assign(
-            model.transformer_blocks[l].attention_layer.output.weight,
+        attn.output.weight = assign(
+            attn.output.weight,
             params[f"model.layers.{l}.self_attn.o_proj.weight"],
             f"model.layers.{l}.self_attn.o_proj.weight",
         )
 
         # QK norms
-        if hasattr(model.transformer_blocks[l].attention_layer, "q_norm") and model.transformer_blocks[l].attention_layer.q_norm is not None:
-            model.transformer_blocks[l].attention_layer.q_norm.scale = assign(
-                model.transformer_blocks[l].attention_layer.q_norm.scale,
+        if hasattr(attn, "q_norm") and attn.q_norm is not None:
+            attn.q_norm.scale = assign(
+                attn.q_norm.scale,
                 params[f"model.layers.{l}.self_attn.q_norm.weight"],
                 f"model.layers.{l}.self_attn.q_norm.weight",
             )
-        if hasattr(model.transformer_blocks[l].attention_layer, "k_norm") and model.transformer_blocks[l].attention_layer.k_norm is not None:
-            model.transformer_blocks[l].attention_layer.k_norm.scale = assign(
-                model.transformer_blocks[l].attention_layer.k_norm.scale,
+        if hasattr(attn, "k_norm") and attn.k_norm is not None:
+            attn.k_norm.scale = assign(
+                attn.k_norm.scale,
                 params[f"model.layers.{l}.self_attn.k_norm.weight"],
                 f"model.layers.{l}.self_attn.k_norm.weight",
             )
 
 
-        model.transformer_blocks[l].norm1.weight = assign(
-            model.transformer_blocks[l].norm1.weight,
+        block.norm1.weight = assign(
+            block.norm1.scale,
             params[f"model.layers.{l}.input_layernorm.weight"],
             f"model.layers.{l}.input_layernorm.weight",
         )
 
-        model.transformer_blocks[l].ff.fc1.weight = assign(
-            model.transformer_blocks[l].ff.fc1.weight,
+        block.ff.fc1.weight = assign(
+            block.ff.fc1.weight,
             params[f"model.layers.{l}.mlp.gate_proj.weight"],
             f"model.layers.{l}.mlp.gate_proj.weight",
         )
-        model.transformer_blocks[l].ff.fc2.weight = assign(
-            model.transformer_blocks[l].ff.fc2.weight,
+        block.ff.fc2.weight = assign(
+            block.ff.fc2.weight,
             params[f"model.layers.{l}.mlp.up_proj.weight"],
             f"model.layers.{l}.mlp.up_proj.weight",
         )
-        model.transformer_blocks[l].ff.fc3.weight = assign(
-            model.transformer_blocks[l].ff.fc3.weight,
+        block.ff.fc3.weight = assign(
+            block.ff.fc3.weight,
             params[f"model.layers.{l}.mlp.down_proj.weight"],
             f"model.layers.{l}.mlp.down_proj.weight",
         )
-        model.transformer_blocks[l].norm2.weight = assign(
-            model.transformer_blocks[l].norm2.weight,
+        block.norm2.weight = assign(
+            block.norm2.scale,
             params[f"model.layers.{l}.post_attention_layernorm.weight"],
             f"model.layers.{l}.post_attention_layernorm.weight",
         )
@@ -404,7 +405,7 @@ def compute_rope(x, cos, sin):
 
     assert head_dim % 2 == 0, "Head dimension must be even"
 
-    x1 = x[..., :head_dim // 2]
+    x1 = x[..., : head_dim // 2]
     x2 = x[..., head_dim // 2 :]
 
     cos = cos[:seq_len, :].unsqueeze(0).unsqueeze(0)
@@ -418,7 +419,7 @@ def compute_rope(x, cos, sin):
 def compute_rope_params(head_dim, theta_base=10_000, context_length=4096, dtype=torch.float32):
     assert head_dim % 2 == 0, "Embedding dimension must be even"
 
-    inv_freq = 1.0 / (theta_base ** (torch.arange(0, head_dim, 2, dtype=dtype)[:head_dim // 2].float() / head_dim))
+    inv_freq = 1.0 / (theta_base ** (torch.arange(0, head_dim, 2, dtype=dtype)[:(head_dim // 2)].float() / head_dim))
 
     positions = torch.arange(context_length, dtype=dtype)
 
