@@ -163,88 +163,84 @@ def load_weights_into_eve_llm_qwen3(model, param_config, params):
     model.token_embedding.weight = assign(model.token_embedding.weight, params["model.embed_tokens.weight"], "model.embed_tokens.weight")
     for l in range(param_config["n_layers"]):
         block = model.transformer_blocks[l]
-        attn = block.attention_layer
-        attn.W_query.weight = assign(
-            attn.W_query.weight,
+        att = block.attention_layer
+        # Q, K, V projections
+        att.W_query.weight = assign(
+            att.W_query.weight,
             params[f"model.layers.{l}.self_attn.q_proj.weight"],
-            f"model.layers.{l}.self_attn.q_proj.weight",
+            f"model.layers.{l}.self_attn.q_proj.weight"
         )
-        attn.W_key.weight = assign(
-            attn.W_key.weight,
+        att.W_key.weight = assign(
+            att.W_key.weight,
             params[f"model.layers.{l}.self_attn.k_proj.weight"],
-            f"model.layers.{l}.self_attn.k_proj.weight",
+            f"model.layers.{l}.self_attn.k_proj.weight"
         )
-        attn.W_value.weight = assign(
-            attn.W_value.weight,
+        att.W_value.weight = assign(
+            att.W_value.weight,
             params[f"model.layers.{l}.self_attn.v_proj.weight"],
-            f"model.layers.{l}.self_attn.v_proj.weight",
+            f"model.layers.{l}.self_attn.v_proj.weight"
         )
-        attn.output.weight = assign(
-            attn.output.weight,
+
+        # Output projection
+        att.output.weight = assign(
+            att.output.weight,
             params[f"model.layers.{l}.self_attn.o_proj.weight"],
-            f"model.layers.{l}.self_attn.o_proj.weight",
+            f"model.layers.{l}.self_attn.o_proj.weight"
         )
 
         # QK norms
-        if hasattr(attn, "q_norm") and attn.q_norm is not None:
-            attn.q_norm.scale = assign(
-                attn.q_norm.scale,
+        if hasattr(att, "q_norm") and att.q_norm is not None:
+            att.q_norm.scale = assign(
+                att.q_norm.scale,
                 params[f"model.layers.{l}.self_attn.q_norm.weight"],
-                f"model.layers.{l}.self_attn.q_norm.weight",
+                f"model.layers.{l}.self_attn.q_norm.weight"
             )
-        if hasattr(attn, "k_norm") and attn.k_norm is not None:
-            attn.k_norm.scale = assign(
-                attn.k_norm.scale,
+        if hasattr(att, "k_norm") and att.k_norm is not None:
+            att.k_norm.scale = assign(
+                att.k_norm.scale,
                 params[f"model.layers.{l}.self_attn.k_norm.weight"],
-                f"model.layers.{l}.self_attn.k_norm.weight",
+                f"model.layers.{l}.self_attn.k_norm.weight"
             )
 
-
-        block.norm1.weight = assign(
+        # Attention layernorm
+        block.norm1.scale = assign(
             block.norm1.scale,
             params[f"model.layers.{l}.input_layernorm.weight"],
-            f"model.layers.{l}.input_layernorm.weight",
+            f"model.layers.{l}.input_layernorm.weight"
         )
 
+        # Feedforward weights
         block.ff.fc1.weight = assign(
             block.ff.fc1.weight,
             params[f"model.layers.{l}.mlp.gate_proj.weight"],
-            f"model.layers.{l}.mlp.gate_proj.weight",
+            f"model.layers.{l}.mlp.gate_proj.weight"
         )
         block.ff.fc2.weight = assign(
             block.ff.fc2.weight,
             params[f"model.layers.{l}.mlp.up_proj.weight"],
-            f"model.layers.{l}.mlp.up_proj.weight",
+            f"model.layers.{l}.mlp.up_proj.weight"
         )
         block.ff.fc3.weight = assign(
             block.ff.fc3.weight,
             params[f"model.layers.{l}.mlp.down_proj.weight"],
-            f"model.layers.{l}.mlp.down_proj.weight",
+            f"model.layers.{l}.mlp.down_proj.weight"
         )
-        block.norm2.weight = assign(
+        block.norm2.scale = assign(
             block.norm2.scale,
             params[f"model.layers.{l}.post_attention_layernorm.weight"],
-            f"model.layers.{l}.post_attention_layernorm.weight",
+            f"model.layers.{l}.post_attention_layernorm.weight"
         )
 
-    model.final_norm.scale = assign(
-        model.final_norm.scale,
-        params[f"model.norm.weight"],
-        "model.norm.weight",
-    )
+        # Final normalization and output head
+    model.final_norm.scale = assign(model.final_norm.scale, params["model.norm.weight"], "model.norm.weight")
+
     if "lm_head.weight" in params:
-        model.out_head.weight = assign(
-            model.out_head.weight,
-            params[f"lm_head.weight"],
-            "lm_head.weight",
-        )
+        model.out_head.weight = assign(model.out_head.weight, params["lm_head.weight"], "lm_head.weight")
     else:
-        model.out_head.weight = assign(
-            model.out_head.weight,
-            params[f"model.embed_tokens.weight"],
-            "model.embed_tokens.weight",
-        )
+        # Model uses weight tying, hence we reuse the embedding layer weights here
         print("Model uses weight tying.")
+        model.out_head.weight = assign(model.out_head.weight, params["model.embed_tokens.weight"],
+                                       "model.embed_tokens.weight")
 
 def format_input_alpaca(entry):
     instruction_text = (
@@ -401,32 +397,43 @@ def precompute_for_rope_params(head_dim, theta_base=10_000, context_length=4096,
     return cos, sin
 
 def compute_rope(x, cos, sin):
+    # x: (batch_size, num_heads, seq_len, head_dim)
     batch_size, num_heads, seq_len, head_dim = x.shape
-
     assert head_dim % 2 == 0, "Head dimension must be even"
 
-    x1 = x[..., : head_dim // 2]
-    x2 = x[..., head_dim // 2 :]
+    # Split x into first half and second half
+    x1 = x[..., : head_dim // 2]  # First half
+    x2 = x[..., head_dim // 2 :]  # Second half
 
-    cos = cos[:seq_len, :].unsqueeze(0).unsqueeze(0)
+    # Adjust sin and cos shapes
+    cos = cos[:seq_len, :].unsqueeze(0).unsqueeze(0)  # Shape: (1, 1, seq_len, head_dim)
     sin = sin[:seq_len, :].unsqueeze(0).unsqueeze(0)
 
+    # Apply the rotary transformation
     rotated = torch.cat((-x2, x1), dim=-1)
     x_rotated = (x * cos) + (rotated * sin)
 
+    # It's ok to use lower-precision after applying cos and sin rotation
     return x_rotated.to(dtype=x.dtype)
 
 def compute_rope_params(head_dim, theta_base=10_000, context_length=4096, dtype=torch.float32):
     assert head_dim % 2 == 0, "Embedding dimension must be even"
 
-    inv_freq = 1.0 / (theta_base ** (torch.arange(0, head_dim, 2, dtype=dtype)[:(head_dim // 2)].float() / head_dim))
+    # Compute the inverse frequencies
+    inv_freq = 1.0 / (theta_base ** (torch.arange(0, head_dim, 2, dtype=dtype)[: (head_dim // 2)].float() / head_dim))
 
+    # Generate position indices
     positions = torch.arange(context_length, dtype=dtype)
 
-    angles = positions[:, None] * inv_freq[None, :]
-    angles = torch.cat([angles, angles], dim=1)
+    # Compute the angles
+    angles = positions[:, None] * inv_freq[None, :]  # Shape: (context_length, head_dim // 2)
 
-    cos, sin = torch.cos(angles), torch.sin(angles)
+    # Expand angles to match the head_dim
+    angles = torch.cat([angles, angles], dim=1)  # Shape: (context_length, head_dim)
+
+    # Precompute sine and cosine
+    cos = torch.cos(angles)
+    sin = torch.sin(angles)
 
     return cos, sin
 
