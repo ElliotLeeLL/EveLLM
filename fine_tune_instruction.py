@@ -128,6 +128,7 @@ if __name__ == "__main__":
     optimizer = torch.optim.AdamW(model.parameters(), lr=0.00005, weight_decay=0.1)
     num_epochs = 2
 
+    # train_losses, val_losses, tokens_seen = [], [], [0]
     train_losses, val_losses, tokens_seen = train_model_simple(
         model, train_loader, val_loader, optimizer, device, config=config,
         num_epochs=num_epochs, eval_freq=5, eval_iter=5,
@@ -159,7 +160,7 @@ if __name__ == "__main__":
         token_ids = generate_top_k(
             model=model,
             idx=text_to_token_ids(input_text, tokenizer).to(device),
-            max_new_tokens=256,
+            max_new_tokens=512,
             context_size=config["context_length"],
             eos_id=tokenizer.eos_token_id,
             temperature=0.6,
@@ -171,6 +172,8 @@ if __name__ == "__main__":
             .replace("### Response:", "")
             .strip()
         )
+        response_text = response_text.split("</think>\n\n", 1)[-1]
+        response_text = response_text.removesuffix("<|im_end|>")
         test_data[i]["model_response"] = response_text
 
     result_data_path = Path("result_data") / f"instruction_data_with_response_{model_name}_{datetime.now().strftime('%Y%m%d%H%M')}.json"
