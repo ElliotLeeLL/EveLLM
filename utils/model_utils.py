@@ -5,6 +5,9 @@ import numpy as np
 import tiktoken
 from pathlib import Path
 
+from layers.lora import LinearWithLoRA
+
+
 def text_to_token_ids(text, tokenizer):
     encoded = tokenizer.encode(text)
     encoded_tensor = torch.tensor(encoded).unsqueeze(0)
@@ -460,3 +463,10 @@ def model_memory_size(model, input_dtype=torch.float32):
     total_memory_gb = total_memory_bytes / (1024**3)
 
     return total_memory_gb
+
+def replace_linear_with_lora(model, rank, alpha, config):
+    for name, module in model.named_children():
+        if isinstance(module, torch.nn.Linear):
+            setattr(model, name, LinearWithLoRA(module, rank, alpha, config))
+        else:
+            replace_linear_with_lora(module, rank, alpha, config)
