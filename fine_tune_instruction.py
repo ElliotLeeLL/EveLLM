@@ -37,6 +37,7 @@ if __name__ == "__main__":
     current_weights = load_file(weights_path)
     combined_weights.update(current_weights)
     load_weights_into_eve_llm_qwen3(model, config, combined_weights)
+    replace_linear_with_lora(model, rank=16, alpha=16, config=config)
     model.to(device)
 
     # Froze parameters for all layers except the last transformer block and the output layer
@@ -58,7 +59,7 @@ if __name__ == "__main__":
     tokenizer = Qwen3Tokenizer(
         str(tokenizer_file_path),
         add_generation_prompt=True,
-        add_thinking=True,
+        add_thinking=False,
     )
     file_path = Path("instruction_data") / "instruction_data.json"
     url = "https://raw.githubusercontent.com/tatsu-lab/stanford_alpaca/main/alpaca_data.json"
