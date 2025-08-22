@@ -18,6 +18,8 @@ The model begins with two embedding layers, followed by 24 transformer blocks. T
 
 During the fine-tuning, only the final transformer block, the final layer norm, and the linear output layer are trainable — all other layers are frozen. This selective training strategy helps preserve the knowledge learned during pretraining while adapting the model efficiently to the classification task. 
 
+For further details, see the branch classification in the GitHub repository.
+
 ## EveLLM Chat
 
 EveLLM Chat is fine-tuned from GPT2-124M and shares a similar architecture with EveLLM Classifier, with a key difference in the output layer: EveLLM Chat produces 50257 output features, corresponding to the full vocabulary size of the GPT-2 model. The architecture is illustrated in Figure 2:
@@ -30,11 +32,15 @@ EveLLM Chat is fine-tuned from GPT2-124M and shares a similar architecture with 
 
 Unlike EveLLM Classifier, EveLLM Chat does not freeze any layers during training and consists of only 12 transformer blocks, aligning with the original GPT2-124M configuration.
 
-## EveLLM Chat Llama
+Please refer to the repository’s branch instruction on GitHub for more details.
+
+## EveLLM Chat LLaMA
 
 EveLLM Chat LLaMA is an updated version of EveLLM Chat that adopts the LLaMA 3.2 architecture. Core modules of EveLLM Chat—such as layer normalization, multi-head attention transformer blocks, and absolute positional embeddings—were replaced with LLaMA 3.2 components, including RMS normalization, grouped-query attention blocks, and rotary positional embeddings (RoPE). The architecture is illustrated in Figure 3:
 
 <p align="center">
   <img src="images/iVBORw0KGgoAAAANSUhEUgAAAroBBB.png" alt="Output" width="300"/><br/>
-  <em>Figure 3: The Architecture of The EveLLM Chat Lllama</em>
+  <em>Figure 3: The Architecture of The EveLLM Chat LLaMA</em>
 </p>
+
+More information is available in the repository’s GitHub branch instruction-llama.
