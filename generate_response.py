@@ -1,19 +1,25 @@
+import argparse
 import json
 from datetime import datetime
-from functools import partial
-from pathlib import Path
 
 import torch
+import tiktoken
+from pathlib import Path
 from torch.utils.data import DataLoader
-from tqdm import tqdm
 import time
+from functools import partial
+from tqdm import tqdm
+from safetensors.torch import load_file
 
 from configuration import model_configs_qwen3
+from model import EveLLMModel
+from tokenizer.llama_tokenizer import Tokenizer
+from tokenizer.qwen_tokenizer import Qwen3Tokenizer
+from utils.model_utils import *
+from utils.diagram_utils import *
+from utils.gpt_download import download_and_load_gpt2
 from dataset.eve_dataset import InstructionDataset, custom_collate_fn
 from instruction_dataset_download import download_and_load_file
-from model import EveLLMModel
-from tokenizer.qwen_tokenizer import Qwen3Tokenizer
-from utils.model_utils import format_input_alpaca, text_to_token_ids, token_ids_to_text, generate_top_k
 
 device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 torch.manual_seed(43)
@@ -21,16 +27,23 @@ model_name = "eve-llm-qwen3-0P6B"
 config = model_configs_qwen3[model_name]
 model = EveLLMModel(config)
 
-state_dict = torch.load(
-    Path("result_models/eve-llm-qwen3-0P6B_cl_40960_ed_1024_202508141521_important.pth"),
-    map_location=torch.device("cpu")
-)
-model.load_state_dict(state_dict)
+# Load weight into the model
+combined_weights = {}
+weights_path = Path("Qwen3-0.6B") / "model.safetensors"
+current_weights = load_file(weights_path)
+combined_weights.update(current_weights)
+load_weights_into_eve_llm_qwen3(model, config, combined_weights)
+# replace_linear_with_lora(model, rank=16, alpha=16, config=config)
+model.to(device)
 model.to(device).eval()
 
 # Prepare datasets
 tokenizer_file_path = Path("Qwen3-0.6B") / "tokenizer.json"
-tokenizer = Qwen3Tokenizer(str(tokenizer_file_path))
+tokenizer = Qwen3Tokenizer(
+    str(tokenizer_file_path),
+    add_thinking=False,
+    add_generation_prompt=True
+)
 file_path = Path("instruction_data") / "instruction_data.json"
 url = "https://raw.githubusercontent.com/tatsu-lab/stanford_alpaca/main/alpaca_data.json"
 data = download_and_load_file(file_path, url)
@@ -43,9 +56,9 @@ val_data = data[train_portion + test_portion:]
 test_data = data[train_portion:train_portion + test_portion]
 
 # # Test code
-train_data = train_data[:85]
-val_data = val_data[:5]
-test_data = test_data[:10]
+# train_data = train_data[:85]
+# val_data = val_data[:5]
+# test_data = test_data[:10]
 
 num_workers = 0
 batch_size = 4
