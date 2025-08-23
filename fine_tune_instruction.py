@@ -173,7 +173,7 @@ if __name__ == "__main__":
             .replace("### Response:", "")
             .strip()
         )
-        response_text = response_text.split("</think>\n\n", 1)[-1]
+        response_text = response_text.removeprefix("<|im_start|>assistant\n<think>\n\n</think>\n\n")
         response_text = response_text.removesuffix("<|im_end|>")
         test_data[i]["model_response"] = response_text
 

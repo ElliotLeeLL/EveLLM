@@ -58,7 +58,7 @@ test_data = data[train_portion:train_portion + test_portion]
 # # Test code
 # train_data = train_data[:85]
 # val_data = val_data[:5]
-# test_data = test_data[:10]
+test_data = test_data[:10]
 
 num_workers = 0
 batch_size = 4
@@ -109,10 +109,12 @@ for i, entry in tqdm(enumerate(test_data), total=len(test_data)):
     )
     generated_text = token_ids_to_text(token_ids, tokenizer)
     response_text = (
-        generated_text[len("<im_start>") + len(input_text):]
+        generated_text[len("<|im_start|>user\n")+len(input_text)+len("<|im_end|>\n")::]
         .replace("### Response:", "")
         .strip()
     )
+    response_text = response_text.removeprefix("<|im_start|>assistant\n<think>\n\n</think>\n\n")
+    response_text = response_text.removesuffix("<|im_end|>")
     test_data[i]["model_response"] = response_text
 
 result_data_path = Path(
