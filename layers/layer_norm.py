@@ -52,6 +52,25 @@ class RMSNormQwen(nn.Module):
 
         return norm_x.to(input_dtype)
 
+class RMSNormGemma(nn.Module):
+    def __init__(self, emb_dim, eps=1e-6, bias=False):
+        super().__init__()
+        self.eps = eps
+        self.scale = nn.Parameter(torch.zeros(emb_dim))
+        self.shift = nn.Parameter(torch.zeros(emb_dim)) if bias else None
+
+    def forward(self, x):
+        input_dtype = x.dtype
+        x_f = x.float()
+        var = x_f.pow(2).mean(dim=-1, keepdim=True)
+        x_norm = x_f * torch.rsqrt(var + self.eps)
+        out = x_norm * (1 + self.scale.float())
+
+        if self.shift is not None:
+            out = out + self.shift
+
+        return out.to(dtype=input_dtype)
+
 # # Test code
 # torch.set_printoptions(sci_mode=False)
 # batch_example = torch.randn(2, 3, 5)
