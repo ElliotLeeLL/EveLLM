@@ -40,9 +40,10 @@ Please refer to the repository’s branch instruction on GitHub for more details
 EveLLM Chat LLaMA is an updated version of EveLLM Chat that adopts the LLaMA 3.2 architecture. Core modules of EveLLM Chat—such as layer normalization, multi-head attention transformer blocks, and absolute positional embeddings—were replaced with LLaMA 3.2 components, including RMS normalization, grouped-query attention blocks, and rotary positional embeddings (RoPE). The architecture is illustrated in Figure 3:
 
 <p align="center">
-  <img src="images/iVBORw0KGgoAAAANSUhEUgAAAroBBB.png" alt="Output" width="300"/><br/>
+  <img src="images/iVBORw0KGgoAAAANSUhEUgAAAroBBB.png" alt="Output" width="400"/><br/>
   <em>Figure 3: The Architecture of The EveLLM Chat LLaMA</em>
 </p>
+
 
 More information is available in the repository’s GitHub branch instruction-llama.
 
@@ -51,7 +52,7 @@ More information is available in the repository’s GitHub branch instruction-ll
 EveLLM Chat Qwen3 is an updated variant of EveLLM Chat LLaMA. The key distinction between the two lies in their architectural design: EveLLM Chat Qwen3 adopts a *deeper* architecture, whereas EveLLM Chat LLaMA employs a *wider* one. In practice, this means that EveLLM Chat Qwen3 contains more transformer blocks, with each block comprising comparatively narrower components. The architecture is illustrated in Figure 4.
 
 <p align="center">
-  <img src="images/iVBORw0KGgoAAAANSUhEUgAAAroCCC.png" alt="Output" width="500"/><br/>
+  <img src="images/iVBORw0KGgoAAAANSUhEUgAAAroCCC.png" alt="Output" width="600"/><br/>
   <em>Figure 4: The Architecture of The EveLLM Chat Qwen3</em>
 </p>
 
