@@ -4,6 +4,7 @@ EveLLM is a family of large language models (LLMs) derived from AdamLLM (see the
 - **EveLLM Classifier** – optimized for film review classification.
 - **EveLLM Chat** – designed for instruction-following tasks.
 - **EveLLM Chat LLaMA** – an updated version of EveLLM Chat, built on the LLaMA 3.2 architecture instead of the original GPT architecture.
+- **EveLLM Chat Qwen3** – a further adaptation based on the Qwen 3 architecture.
 
 ## EveLLM Classifier
 
@@ -44,3 +45,14 @@ EveLLM Chat LLaMA is an updated version of EveLLM Chat that adopts the LLaMA 3.2
 </p>
 
 More information is available in the repository’s GitHub branch instruction-llama.
+
+## EveLLM Chat Qwen3
+
+EveLLM Chat Qwen3 is an updated variant of EveLLM Chat LLaMA. The key distinction between the two lies in their architectural design: EveLLM Chat Qwen3 adopts a *deeper* architecture, whereas EveLLM Chat LLaMA employs a *wider* one. In practice, this means that EveLLM Chat Qwen3 contains more transformer blocks, with each block comprising comparatively narrower components. The architecture is illustrated in Figure 4.
+
+<p align="center">
+  <img src="images/iVBORw0KGgoAAAANSUhEUgAAAroCCC.png" alt="Output" width="300"/><br/>
+  <em>Figure 4: The Architecture of The EveLLM Chat Qwen3</em>
+</p>
+
+For more information, check the code in the branch instruction-qwen3.
