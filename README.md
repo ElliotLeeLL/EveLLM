@@ -51,8 +51,9 @@ More information is available in the repository’s GitHub branch instruction-ll
 EveLLM Chat Qwen3 is an updated variant of EveLLM Chat LLaMA. The key distinction between the two lies in their architectural design: EveLLM Chat Qwen3 adopts a *deeper* architecture, whereas EveLLM Chat LLaMA employs a *wider* one. In practice, this means that EveLLM Chat Qwen3 contains more transformer blocks, with each block comprising comparatively narrower components. The architecture is illustrated in Figure 4.
 
 <p align="center">
-  <img src="images/iVBORw0KGgoAAAANSUhEUgAAAroCCC.png" alt="Output" width="300"/><br/>
+  <img src="images/iVBORw0KGgoAAAANSUhEUgAAAroCCC.png" alt="Output" width="500"/><br/>
   <em>Figure 4: The Architecture of The EveLLM Chat Qwen3</em>
 </p>
+
 
 For more information, check the code in the branch instruction-qwen3.
