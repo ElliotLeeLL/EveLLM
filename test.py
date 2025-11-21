@@ -61,7 +61,8 @@ tokenizer = Qwen3Tokenizer(
     add_thinking=True,
 )
 
-prompt = "Give me a short introduction to large language models."
+# prompt = "Give me a short introduction to large language models."
+prompt = "Who is the most beautiful woman in the world?"
 input_token_ids = tokenizer.encode(prompt)
 text = tokenizer.decode(input_token_ids)
 print(text)
