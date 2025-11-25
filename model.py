@@ -123,7 +123,7 @@ class EveLLMModel(nn.Module):
             head_dim = config["emb_dim"] // config["n_heads"]
         else:
             head_dim = config["head_dim"]
-        cos, sin = compute_rope_params(
+            cos, sin = compute_rope_params(
             head_dim=head_dim,
             theta_base=config["rope_base"],
             context_length=config["context_length"],
