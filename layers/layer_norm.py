@@ -64,7 +64,7 @@ class RMSNormGemma(nn.Module):
         x_f = x.float()
         var = x_f.pow(2).mean(dim=-1, keepdim=True)
         x_norm = x_f * torch.rsqrt(var + self.eps)
-        out = x_norm * (1 + self.scale.float())
+        out = x_norm * (1.0 + self.scale.float())
 
         if self.shift is not None:
             out = out + self.shift
