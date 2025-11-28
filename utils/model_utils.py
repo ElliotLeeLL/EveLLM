@@ -425,7 +425,7 @@ def compute_rope_params(head_dim, theta_base=10_000, context_length=4096, dtype=
     inv_freq = 1.0 / (theta_base ** (torch.arange(0, head_dim, 2, dtype=dtype)[:head_dim // 2].float() / head_dim))
 
     positions = torch.arange(context_length, dtype=dtype)
-    angles = positions[:, None] * inv_freq[None, :]
+    angles = positions.unsqueeze(1) * inv_freq.unsqueeze(0)
     angles = torch.cat([angles, angles], dim=1)
 
     cos, sin = torch.cos(angles), torch.sin(angles)
