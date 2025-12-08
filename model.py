@@ -1,7 +1,7 @@
 import torch
 import torch.nn as nn
 from attention.transformer_block import TransformerBlock
-from layers.layer_norm import RMSNormQwen
+from layers.layer_norm import RMSNormQwen, RMSNormGemma
 from utils.model_utils import compute_rope_params
 
 
@@ -103,33 +103,87 @@ from utils.model_utils import compute_rope_params
 #         logits = self.out_head(x.to(self.config["dtype"]))
 #         return logits
 
+# class EveLLMModel(nn.Module):
+#     def __init__(self, config):
+#         super().__init__()
+#         self.token_embedding = nn.Embedding(config["vocab_size"], config["emb_dim"], dtype=config["dtype"])
+#         self.transformer_blocks = nn.ModuleList(
+#             [
+#                 TransformerBlock(config) for _ in range(config["n_layers"])
+#             ]
+#         )
+#         self.final_norm = RMSNormQwen(config["emb_dim"])
+#         self.out_head = nn.Linear(
+#             config["emb_dim"],
+#             config["vocab_size"],
+#             bias=False,
+#             dtype=config["dtype"]
+#         )
+#         if config["head_dim"] is None:
+#             head_dim = config["emb_dim"] // config["n_heads"]
+#         else:
+#             head_dim = config["head_dim"]
+#             cos, sin = compute_rope_params(
+#             head_dim=head_dim,
+#             theta_base=config["rope_base"],
+#             context_length=config["context_length"],
+#         )
+#         self.register_buffer("cos", cos, persistent=False)
+#         self.register_buffer("sin", sin, persistent=False)
+#         self.config = config
+#
+#     def forward(self, in_idx):
+#         token_embeds = self.token_embedding(in_idx)
+#         x = token_embeds
+#
+#         num_tokens = x.shape[1]
+#         mask = torch.triu(torch.ones(num_tokens, num_tokens, device=x.device, dtype=torch.bool), diagonal=1)
+#
+#         for transformer_block in self.transformer_blocks:
+#             x = transformer_block(x, mask=mask, cos=self.cos, sin=self.sin)
+#         x = self.final_norm(x)
+#         logits = self.out_head(x.to(self.config["dtype"]))
+#         return logits
+
 class EveLLMModel(nn.Module):
     def __init__(self, config):
         super().__init__()
+        assert config["layer_types"] is not None and len(config["layer_types"]) == config["n_layers"]
+
         self.token_embedding = nn.Embedding(config["vocab_size"], config["emb_dim"], dtype=config["dtype"])
+
         self.transformer_blocks = nn.ModuleList(
             [
-                TransformerBlock(config) for _ in range(config["n_layers"])
+                TransformerBlock(config, attn_type) for attn_type in config["layer_types"]
             ]
         )
-        self.final_norm = RMSNormQwen(config["emb_dim"])
+
+        self.final_norm = RMSNormGemma(config["emb_dim"], eps=1e-6)
         self.out_head = nn.Linear(
             config["emb_dim"],
             config["vocab_size"],
             bias=False,
             dtype=config["dtype"]
         )
-        if config["head_dim"] is None:
-            head_dim = config["emb_dim"] // config["n_heads"]
-        else:
-            head_dim = config["head_dim"]
-            cos, sin = compute_rope_params(
-            head_dim=head_dim,
+        self.config = config
+        self.current_pos = 0
+        cos_local, sin_local = compute_rope_params(
+            head_dim=config["head_dim"],
+            theta_base=config["rope_local_base"],
+            context_length=config["context_length"],
+            dtype=torch.float32,
+        )
+        cos_global, sin_global = compute_rope_params(
+            head_dim=config["head_dim"],
             theta_base=config["rope_base"],
             context_length=config["context_length"],
+            dtype=torch.float32,
         )
-        self.register_buffer("cos", cos, persistent=False)
-        self.register_buffer("sin", sin, persistent=False)
+
+        self.register_buffer("cos_local", cos_local, persistent=False)
+        self.register_buffer("sin_local", sin_local, persistent=False)
+        self.register_buffer("cos_global", cos_global, persistent=False)
+        self.register_buffer("sin_global", sin_global, persistent=False)
         self.config = config
 
     def forward(self, in_idx):
