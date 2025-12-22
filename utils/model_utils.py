@@ -162,7 +162,7 @@ def assign(left, right, tensor_name="unknown"):
     else:
         return torch.tensor(right)
 
-def load_weights_into_eve_llm_qwen3(model, param_config, params):
+def load_weights_into_eve_llm_gemma3(model, param_config, params):
     model.token_embedding.weight = assign(model.token_embedding.weight, params["model.embed_tokens.weight"], "model.embed_tokens.weight")
     for l in range(param_config["n_layers"]):
         block = model.transformer_blocks[l]
@@ -205,12 +205,12 @@ def load_weights_into_eve_llm_qwen3(model, param_config, params):
                 f"model.layers.{l}.self_attn.k_norm.weight"
             )
 
-        # Attention layernorm
-        block.norm1.scale = assign(
-            block.norm1.scale,
-            params[f"model.layers.{l}.input_layernorm.weight"],
-            f"model.layers.{l}.input_layernorm.weight"
-        )
+        # # Attention layernorm
+        # block.norm1.scale = assign(
+        #     block.norm1.scale,
+        #     params[f"model.layers.{l}.input_layernorm.weight"],
+        #     f"model.layers.{l}.input_layernorm.weight"
+        # )
 
         # Feedforward weights
         block.ff.fc1.weight = assign(
@@ -228,14 +228,35 @@ def load_weights_into_eve_llm_qwen3(model, param_config, params):
             params[f"model.layers.{l}.mlp.down_proj.weight"],
             f"model.layers.{l}.mlp.down_proj.weight"
         )
-        block.norm2.scale = assign(
-            block.norm2.scale,
+
+        block.input_layernorm.scale = assign(
+            block.input_layernorm.scale,
+            params[f"model.layers.{l}.input_layernorm.weight"],
+            f"model.layers.{l}.input_layernorm.weight",
+        )
+        block.post_layernorm.scale = assign(
+            block.post_layernorm.scale,
             params[f"model.layers.{l}.post_attention_layernorm.weight"],
             f"model.layers.{l}.post_attention_layernorm.weight"
         )
+        pre_key = f"model.layers.{l}.pre_feedforward_layernorm.weight"
+        post_key = f"model.layers.{l}.post_feedforward_layernorm.weight"
+        if pre_key in params:
+            block.pre_feedforward_layernorm.scale = assign(
+                block.pre_feedforward_layernorm.scale,
+                params[pre_key],
+                pre_key
+            )
+        if post_key in params:
+            block.post_feedforward_layernorm.scale = assign(
+                block.post_feedforward_layernorm.scale,
+                params[post_key],
+                post_key
+            )
 
-        # Final normalization and output head
-    model.final_norm.scale = assign(model.final_norm.scale, params["model.norm.weight"], "model.norm.weight")
+    # Final normalization and output head
+    if "model.norm_weight" in params:
+        model.final_norm.scale = assign(model.final_norm.scale, params["model.norm.weight"], "model.norm.weight")
 
     if "lm_head.weight" in params:
         model.out_head.weight = assign(model.out_head.weight, params["lm_head.weight"], "lm_head.weight")
