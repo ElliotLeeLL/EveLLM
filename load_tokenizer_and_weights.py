@@ -1,19 +1,25 @@
-from huggingface_hub import login, hf_hub_download
 import json
+import os
+from pathlib import Path
+from safetensors.torch import  load_file
+from huggingface_hub import hf_hub_download, snapshot_download, login
 
-from transformers import AutoTokenizer
+# To download Gemma3-270m-it weight from hugging face, you need to accept google's licensing terms and create a token on hugging face website
+# login(token="PLEASE ENTER YOUR TOKEN HERE")
 
-from configuration import model_configs_llama
+CHOOSE_MODEL = "270m"
+USE_INSTRUCT_MODEL = True
 
+if USE_INSTRUCT_MODEL:
+    repo_id = f"google/gemma-3-{CHOOSE_MODEL}-it"
+else:
+    repo_id = f"google/gemma-3-{CHOOSE_MODEL}"
 
-tokenizer_file = hf_hub_download(
-    repo_id="Qwen/Qwen3-0.6B",
-    filename="tokenizer.json",
-    local_dir="Qwen3-0.6B",
-)
+local_dir = Path(__file__).resolve().parent / "Gemma3-0.27B"
 
-weights_file = hf_hub_download(
-    repo_id="Qwen/Qwen3-0.6B",
+weight_file = hf_hub_download(
+    repo_id=repo_id,
     filename="model.safetensors",
-    local_dir="Qwen3-0.6B"
+    local_dir=local_dir,
 )
+
