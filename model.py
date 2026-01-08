@@ -214,7 +214,6 @@ class EveLLMModel(nn.Module):
 
     def forward(
             self,
-            x,
             input_ids,
             cache=None
     ):
@@ -226,7 +225,7 @@ class EveLLMModel(nn.Module):
             pos_end = pos_start + seq_len
             self.current_pos = pos_end
             mask_global, mask_local = self._create_masks(
-                cur_len=seq_len, device=x.device, pos_start=pos_start, pos_end=seq_len
+                cur_len=seq_len, device=x.device, pos_start=pos_start, pos_end=pos_end
             )
         else:
             pos_start = 0
