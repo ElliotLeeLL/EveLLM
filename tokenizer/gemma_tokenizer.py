@@ -2,8 +2,8 @@ from pathlib import Path
 
 from tokenizers import Tokenizer
 
-class GemmaTokenizer(Tokenizer):
-    def __init__(self, tokenizer_file_path, model):
+class GemmaTokenizer:
+    def __init__(self, tokenizer_file_path):
         tok_file = Path(tokenizer_file_path)
         self.tok_ = Tokenizer.from_file(str(tok_file))
         eos_token = "<end_of_turn>"
