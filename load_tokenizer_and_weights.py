@@ -17,9 +17,18 @@ else:
 
 local_dir = Path(__file__).resolve().parent / "Gemma3-0.27B"
 
-weight_file = hf_hub_download(
-    repo_id=repo_id,
-    filename="model.safetensors",
-    local_dir=local_dir,
-)
+if os.path.exists(local_dir):
+    weight_file = hf_hub_download(
+        repo_id=repo_id,
+        filename="model.safetensors",
+        local_dir=local_dir,
+    )
+    tokenizer_file = hf_hub_download(
+        repo_id=repo_id,
+        filename="tokenizer.json",
+        local_dir=local_dir,
+    )
+else:
+    print("Warning: failed to download gemma3 weights and tokenizer file")
+
 
