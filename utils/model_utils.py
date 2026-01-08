@@ -234,8 +234,8 @@ def load_weights_into_eve_llm_gemma3(model, param_config, params):
             params[f"model.layers.{l}.input_layernorm.weight"],
             f"model.layers.{l}.input_layernorm.weight",
         )
-        block.post_layernorm.scale = assign(
-            block.post_layernorm.scale,
+        block.post_attention_layernorm.scale = assign(
+            block.post_attention_layernorm.scale,
             params[f"model.layers.{l}.post_attention_layernorm.weight"],
             f"model.layers.{l}.post_attention_layernorm.weight"
         )
