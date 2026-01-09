@@ -152,9 +152,9 @@ class EveLLMModel(nn.Module):
         super().__init__()
         assert config["layer_types"] is not None and len(config["layer_types"]) == config["n_layers"]
 
-        self.token_embedding = nn.Embedding(config["vocab_size"], config["emb_dim"], dtype=config["dtype"])
+        self.tok_emb = nn.Embedding(config["vocab_size"], config["emb_dim"], dtype=config["dtype"])
 
-        self.transformer_blocks = nn.ModuleList(
+        self.blocks = nn.ModuleList(
             [
                 TransformerBlock(config, attn_type) for attn_type in config["layer_types"]
             ]
@@ -218,7 +218,7 @@ class EveLLMModel(nn.Module):
             cache=None
     ):
         b, seq_len = input_ids.shape
-        x = self.token_embedding(input_ids) * (self.config["emb_dim"] ** 0.5)
+        x = self.tok_emb(input_ids) * (self.config["emb_dim"] ** 0.5)
 
         if cache is not None:
             pos_start = self.current_pos
@@ -232,7 +232,7 @@ class EveLLMModel(nn.Module):
             mask_global, mask_local = self._create_masks(
                 cur_len=seq_len, device=x.device, pos_start=0, pos_end=seq_len
             )
-        for i, block in enumerate(self.transformer_blocks):
+        for i, block in enumerate(self.blocks):
             blk_cache = cache.get(i) if cache is not None else None
             x, new_blk_cache = block(
                 x,

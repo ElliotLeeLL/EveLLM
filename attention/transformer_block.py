@@ -98,7 +98,7 @@ class TransformerBlock(nn.Module):
         self.attn_type = attn_type
         self.sliding_window = config["sliding_window"]
 
-        self.attention_layer = GroupedQueryAttention(
+        self.att = GroupedQueryAttention(
             d_in=config["emb_dim"],
             num_heads=config["n_heads"],
             head_dim=config["head_dim"],
@@ -144,7 +144,7 @@ class TransformerBlock(nn.Module):
             cos = cos_global
             sin = sin_global
 
-        x_attn, next_cache = self.attention_layer(x, attn_mask, cos, sin, start_pos=start_pos, cache=cache)
+        x_attn, next_cache = self.att(x, attn_mask, cos, sin, start_pos=start_pos, cache=cache)
         if next_cache is not None and self.attn_type == "sliding_attention":
             k, v = next_cache
             if k.size(2) > self.sliding_window:

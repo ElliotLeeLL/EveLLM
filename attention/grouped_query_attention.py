@@ -84,7 +84,7 @@ class GroupedQueryAttention(nn.Module):
         self.W_key = nn.Linear(d_in, num_kv_groups * self.head_dim, bias=False, dtype=dtype)
         self.W_value = nn.Linear(d_in, num_kv_groups * self.head_dim, bias=False, dtype=dtype)
 
-        self.output = nn.Linear(self.d_out, d_in, bias=False, dtype=dtype)
+        self.out_proj = nn.Linear(self.d_out, d_in, bias=False, dtype=dtype)
 
         if qk_norm:
             self.q_norm = RMSNormGemma(head_dim, eps=1e-6)
@@ -152,6 +152,6 @@ class GroupedQueryAttention(nn.Module):
         attn_weights = torch.softmax(attn_scores, dim=-1)
 
         context = (attn_weights @ values).transpose(1, 2).reshape(batch_size, num_tokens, self.d_out)
-        out = self.output(context)
+        out = self.out_proj(context)
 
         return out, next_cache
