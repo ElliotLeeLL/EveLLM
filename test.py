@@ -63,7 +63,7 @@ model.to(device)
 tokenizer_file_path = Path("Gemma3-0.27B") / "tokenizer.json"
 tokenizer = GemmaTokenizer(tokenizer_file_path=tokenizer_file_path)
 
-prompt = "Give me a short introduction to large language models."
+prompt = "Give me a short introduction to large language models in 100 words."
 # prompt = "Who is the most beautiful woman in the world?"
 input_token_ids = tokenizer.encode(prompt)
 text = tokenizer.decode(input_token_ids)
