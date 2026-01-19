@@ -8,25 +8,30 @@ from utils.model_utils import *
 from utils.diagram_utils import *
 
 
-def generate_text_basic_stream(model, token_ids, max_new_tokens, eos_token_id=None):
+def generate_text_basic_stream(model, token_ids, max_new_tokens, eos_token_id=None, context_size=None):
     model.eval()
+
     with torch.no_grad():
         cache = KVCache(n_layers=model.config["n_layers"])
         model.reset_kv_cache()
+
+        # Prime the cache with the initial context
         logits = model(token_ids, cache=cache)
 
         for _ in range(max_new_tokens):
             next_token = torch.argmax(logits[:, -1], dim=-1, keepdim=True)
 
-            if (eos_token_id is not None
-                    and torch.all(next_token == eos_token_id)):
+            if eos_token_id is not None and torch.all(next_token == eos_token_id):
                 break
 
             yield next_token
 
             token_ids = torch.cat([token_ids, next_token], dim=1)
 
+            # Feed only the new token to the model; cache handles history
             logits = model(next_token, cache=cache)
+
+    return token_ids
 
 
 device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
