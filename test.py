@@ -2,7 +2,7 @@ from safetensors.torch import load_file
 
 from configuration import model_configs_gemma
 from model import EveLLMModel
-from tokenizer.gemma_tokenizer import GemmaTokenizer
+from tokenizer.gemma_tokenizer import GemmaTokenizer, apply_chat_template
 from utils.KVCache import KVCache
 from utils.model_utils import *
 from utils.diagram_utils import *
@@ -54,6 +54,7 @@ tokenizer = GemmaTokenizer(tokenizer_file_path=tokenizer_file_path)
 
 prompt = "Give me a short introduction to large language models in 100 words."
 # prompt = "Who is the most beautiful woman in the world?"
+prompt = apply_chat_template(prompt)
 input_token_ids = tokenizer.encode(prompt)
 text = tokenizer.decode(input_token_ids)
 print(text)
